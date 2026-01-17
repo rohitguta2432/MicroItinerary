@@ -14,17 +14,17 @@ export default function PlacesScreen() {
         refreshPlaces();
     }, [id]);
 
-    const refreshPlaces = () => {
-        getDb().transaction(tx => {
-            tx.executeSql(
-                'SELECT * FROM places WHERE tripId = ? AND isScheduled = 0',
-                [id],
-                (_, { rows }) => setPlaces(rows._array)
-            );
-        });
+    const refreshPlaces = async () => {
+        try {
+            const db = getDb();
+            const result = await db.getAllAsync<any>('SELECT * FROM places WHERE tripId = ? AND isScheduled = 0', [id]);
+            setPlaces(result);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const addPlace = () => {
+    const addPlace = async () => {
         if (!newPlace) return;
         const placeId = Crypto.randomUUID();
         const now = new Date().toISOString();
@@ -39,17 +39,19 @@ export default function PlacesScreen() {
 
         const item = { id: placeId, tripId: id, name, sourceUrl: url, isScheduled: false, createdAt: now, updatedAt: now };
 
-        getDb().transaction(tx => {
-            tx.executeSql(
+        try {
+            const db = getDb();
+            await db.runAsync(
                 'INSERT INTO places (id, tripId, name, sourceUrl, isScheduled, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [item.id, item.tripId, item.name, item.sourceUrl, 0, item.createdAt, item.updatedAt],
-                () => {
-                    addToSyncQueue('PLACE', placeId, 'CREATE', item);
-                    setNewPlace('');
-                    refreshPlaces();
-                }
+                [item.id, item.tripId, item.name, item.sourceUrl, 0, item.createdAt, item.updatedAt]
             );
-        });
+
+            addToSyncQueue('PLACE', placeId, 'CREATE', item);
+            setNewPlace('');
+            refreshPlaces();
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (

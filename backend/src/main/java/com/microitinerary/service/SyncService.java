@@ -18,10 +18,12 @@ public class SyncService {
 
     private final TripRepository tripRepository;
     private final ActivityRepository activityRepository;
+    private final PackingItemRepository packingItemRepository;
 
-    public SyncService(TripRepository tripRepository, ActivityRepository activityRepository) {
+    public SyncService(TripRepository tripRepository, ActivityRepository activityRepository, PackingItemRepository packingItemRepository) {
         this.tripRepository = tripRepository;
         this.activityRepository = activityRepository;
+        this.packingItemRepository = packingItemRepository;
     }
 
     @Transactional
@@ -31,6 +33,8 @@ public class SyncService {
                 handleTripOp((TripSyncOp) op);
             } else if (op instanceof ActivitySyncOp) {
                 handleActivityOp((ActivitySyncOp) op);
+            } else if (op instanceof PackingItemSyncOp) {
+                handlePackingItemOp((PackingItemSyncOp) op);
             }
         }
     }
@@ -66,10 +70,41 @@ public class SyncService {
         // Similar logic for Activity
     }
 
+    private void handlePackingItemOp(PackingItemSyncOp op) {
+        PackingItem existing = packingItemRepository.findById(op.id).orElse(null);
+
+        if (existing != null && existing.getUpdatedAt().isAfter(op.clientUpdatedAt)) {
+            return; // Server wins
+        }
+
+        if ("DELETE".equals(op.operation)) {
+            // Soft delete preference? Or Hard delete?
+            // If the client sent DELETE operation, usually we hard delete or soft delete.
+            // The PackingItem entity has a deleted flag.
+            if (existing != null) {
+                existing.setDeleted(true);
+                existing.setUpdatedAt(op.clientUpdatedAt);
+                packingItemRepository.save(existing);
+            }
+            return;
+        }
+
+        PackingItem item = existing != null ? existing : new PackingItem();
+        item.setId(op.id);
+        item.setTripId(op.tripId);
+        item.setName(op.name);
+        item.setChecked(op.isChecked != null && op.isChecked);
+        item.setDeleted(op.deleted != null && op.deleted);
+        item.setUpdatedAt(op.clientUpdatedAt);
+
+        packingItemRepository.save(item);
+    }
+
     public SyncPullResponse getPull(LocalDateTime since) {
         List<Object> changes = new ArrayList<>();
         changes.addAll(tripRepository.findAllByUpdatedAtAfter(since));
         changes.addAll(activityRepository.findAllByUpdatedAtAfter(since));
+        changes.addAll(packingItemRepository.findAllByUpdatedAtAfter(since));
         
         return new SyncPullResponse(LocalDateTime.now(), changes);
     }

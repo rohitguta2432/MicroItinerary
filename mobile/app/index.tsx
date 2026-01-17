@@ -2,7 +2,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } fr
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTripStore, Trip } from '../src/store/useTripStore';
-import { syncData } from '../src/services/SyncService';
+import { triggerSync } from '../src/services/syncService';
 import dayjs from 'dayjs';
 
 export default function TripListScreen() {
@@ -16,7 +16,7 @@ export default function TripListScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await syncData();
+        await triggerSync();
         await loadTrips();
         setRefreshing(false);
     };

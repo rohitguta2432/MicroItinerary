@@ -25,11 +25,16 @@
             "package": "com.microitinerary.mobile"
         },
         "web": {
-            "favicon": "./assets/favicon.png"
+            "favicon": "./assets/favicon.png",
+            "name": "MicroItinerary",
+            "shortName": "MicroTrip",
+            "description": "Offline-first travel planner",
+            "themeColor": "#ffffff",
+            "display": "standalone",
+            "backgroundColor": "#ffffff"
         },
         "plugins": [
-            "expo-router",
-            "expo-sqlite"
+            "expo-router"
         ],
         "scheme": "microitinerary"
     }

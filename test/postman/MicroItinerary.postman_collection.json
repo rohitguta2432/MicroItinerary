@@ -1,0 +1,253 @@
+{
+    "info": {
+        "_postman_id": "4b6e8f45-6d8a-4b95-9f5b-1c1a1e1e1e1e",
+        "name": "MicroItinerary",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create Trip",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"Response has ID\", function () {",
+                            "    pm.expect(jsonData.id).to.not.be.undefined;",
+                            "});",
+                            "",
+                            "if (jsonData.id) {",
+                            "    pm.collectionVariables.set(\"tripId\", jsonData.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Test Trip\",\n    \"location\": \"Paris\",\n    \"startDate\": \"2024-06-01\",\n    \"endDate\": \"2024-06-10\",\n    \"travelType\": \"LEISURE\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/trips",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "trips"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get All Trips",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"Response is an array\", function () {",
+                            "    pm.expect(jsonData).to.be.an('array');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/trips",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "trips"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Trip",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"ID matches\", function () {",
+                            "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"tripId\"));",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/trips/{{tripId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "trips",
+                        "{{tripId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Push Sync",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"operations\": [\n        {\n            \"entityType\": \"TRIP\",\n            \"operation\": \"CREATE\",\n            \"id\": \"{{$guid}}\",\n            \"clientUpdatedAt\": \"2024-01-01T10:00:00\",\n            \"name\": \"Synced Trip\",\n            \"location\": \"Tokyo\",\n            \"startDate\": \"2024-10-01\",\n            \"endDate\": \"2024-10-15\",\n            \"travelType\": \"BUSINESS\"\n        }\n    ]\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/sync/push",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "sync",
+                        "push"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Pull Sync",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"Response has changes\", function () {",
+                            "    pm.expect(jsonData.changes).to.be.an('array');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/sync/pull",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "sync",
+                        "pull"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Trip",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200 or 204\", function () {",
+                            "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/trips/{{tripId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "trips",
+                        "{{tripId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "tripId",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
