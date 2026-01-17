@@ -1,22 +1,16 @@
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { getDb } from '../db/schema';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
+import { useTripStore } from '../store/useTripStore';
 
 export default function TripsListScreen() {
-    const [trips, setTrips] = useState([]);
+    const { trips, loadTrips, isLoading } = useTripStore();
 
-    useEffect(() => {
-        refreshTrips();
-    }, []);
-
-    const refreshTrips = () => {
-        getDb().transaction(tx => {
-            tx.executeSql('SELECT * FROM trips', [], (_, { rows }) => {
-                setTrips(rows._array);
-            });
-        });
-    };
+    useFocusEffect(
+        useCallback(() => {
+            loadTrips();
+        }, [])
+    );
 
     return (
         <View style={styles.container}>
@@ -32,7 +26,13 @@ export default function TripsListScreen() {
                         </TouchableOpacity>
                     </Link>
                 )}
-                ListEmptyComponent={<Text style={styles.empty}>No upcoming trips</Text>}
+                ListEmptyComponent={
+                    isLoading ? (
+                        <ActivityIndicator size="large" color="blue" style={{ marginTop: 50 }} />
+                    ) : (
+                        <Text style={styles.empty}>No upcoming trips</Text>
+                    )
+                }
             />
 
             <Link href="/create-trip" asChild>

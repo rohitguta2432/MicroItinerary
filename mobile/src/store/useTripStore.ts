@@ -4,11 +4,14 @@ import dayjs from 'dayjs';
 import { getDB } from '../db/Database';
 
 // Types
+// Types
 export interface Trip {
     id: string;
-    title: string;
+    name: string;
+    location: string;
     startDate: string;
     endDate: string;
+    travelType?: string;
     createdAt: string;
     updatedAt: string;
     isDeleted: number;
@@ -17,11 +20,11 @@ export interface Trip {
 export interface ItineraryItem {
     id: string;
     tripId: string;
-    title: string;
-    description: string;
+    placeName: string;
+    notes: string;
     startTime: string; // ISO string
-    dayIndex: number; // 0-based index relative to start date
-    orderIndex: number;
+    dayId: string;
+    sortOrder: number;
     createdAt: string;
     updatedAt: string;
     isDeleted: number;
@@ -29,16 +32,16 @@ export interface ItineraryItem {
 
 interface TripState {
     trips: Trip[];
-    itineraryItems: ItineraryItem[]; // Loaded for the current selected trip usually, or all if small app
+    itineraryItems: ItineraryItem[];
     isLoading: boolean;
     loadTrips: () => Promise<void>;
-    addTrip: (title: string, startDate: string, endDate: string) => Promise<void>;
-    updateTrip: (id: string, title: string, startDate: string, endDate: string) => Promise<void>;
+    addTrip: (name: string, location: string, startDate: string, endDate: string) => Promise<void>;
+    updateTrip: (id: string, name: string, startDate: string, endDate: string) => Promise<void>;
     deleteTrip: (id: string) => Promise<void>;
 
     // Itinerary Actions
     loadItinerary: (tripId: string) => Promise<void>;
-    addItineraryItem: (tripId: string, title: string, dayIndex: number) => Promise<void>;
+    addItineraryItem: (tripId: string, placeName: string, dayId: string) => Promise<void>;
     reorderItineraryItems: (items: ItineraryItem[]) => Promise<void>;
 }
 
@@ -49,139 +52,103 @@ export const useTripStore = create<TripState>((set, get) => ({
 
     loadTrips: async () => {
         set({ isLoading: true });
-        const db = getDB();
-        db.transaction((tx: any) => {
-            tx.executeSql(
-                'SELECT * FROM trips WHERE isDeleted = 0 ORDER BY startDate ASC',
-                [],
-                (_: any, { rows }: any) => {
-                    set({ trips: rows._array, isLoading: false });
-                },
-                (_: any, error: any) => {
-                    console.error('Error loading trips', error);
-                    set({ isLoading: false });
-                    return false;
-                }
-            );
-        });
+        try {
+            const db = getDB();
+            const trips = await db.getAllAsync<Trip>('SELECT * FROM trips WHERE isDeleted = 0 OR isDeleted IS NULL ORDER BY startDate ASC');
+            set({ trips, isLoading: false });
+        } catch (error) {
+            console.error('Error loading trips', error);
+            set({ isLoading: false });
+        }
     },
 
-    addTrip: async (title, startDate, endDate) => {
+    addTrip: async (name, location, startDate, endDate) => {
         const db = getDB();
         const id = crypto.randomUUID();
         const now = new Date().toISOString();
 
-        return new Promise<void>((resolve, reject) => {
-            db.transaction((tx: any) => {
-                tx.executeSql(
-                    `INSERT INTO trips (id, title, startDate, endDate, createdAt, updatedAt, isDeleted, dirty)
-             VALUES (?, ?, ?, ?, ?, ?, 0, 1)`,
-                    [id, title, startDate, endDate, now, now],
-                    () => {
-                        get().loadTrips();
-                        resolve();
-                    },
-                    (_: any, error: any) => {
-                        console.error("Error adding trip", error);
-                        reject(error);
-                        return false;
-                    }
-                );
-            });
-        });
+        try {
+            await db.runAsync(
+                `INSERT INTO trips (id, name, location, startDate, endDate, createdAt, updatedAt, isDeleted)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+                [id, name, location, startDate, endDate, now, now]
+            );
+            await get().loadTrips();
+        } catch (error) {
+            console.error("Error adding trip", error);
+            throw error;
+        }
     },
 
-    updateTrip: async (id, title, startDate, endDate) => {
+    updateTrip: async (id, name, startDate, endDate) => {
         const db = getDB();
         const now = new Date().toISOString();
-        return new Promise<void>((resolve, reject) => {
-            db.transaction((tx: any) => {
-                tx.executeSql(
-                    `UPDATE trips 
-                 SET title = ?, startDate = ?, endDate = ?, updatedAt = ?, dirty = 1 
+        try {
+            await db.runAsync(
+                `UPDATE trips 
+                 SET name = ?, startDate = ?, endDate = ?, updatedAt = ? 
                  WHERE id = ?`,
-                    [title, startDate, endDate, now, id],
-                    () => {
-                        get().loadTrips();
-                        resolve();
-                    },
-                    (_: any, error: any) => {
-                        console.error("Error updating trip", error);
-                        reject(error);
-                        return false;
-                    }
-                );
-            });
-        });
+                [name, startDate, endDate, now, id]
+            );
+            await get().loadTrips();
+        } catch (error) {
+            console.error("Error updating trip", error);
+            throw error;
+        }
     },
 
     deleteTrip: async (id) => {
         const db = getDB();
         const now = new Date().toISOString();
-        return new Promise<void>((resolve, reject) => {
-            db.transaction((tx: any) => {
-                tx.executeSql(
-                    `UPDATE trips SET isDeleted = 1, updatedAt = ?, dirty = 1 WHERE id = ?`,
-                    [now, id],
-                    () => {
-                        get().loadTrips();
-                        resolve();
-                    },
-                    (_: any, error: any) => {
-                        console.error("Error deleting trip", error);
-                        reject(error);
-                        return false;
-                    }
-                );
-            });
-        });
+        try {
+            await db.runAsync(
+                `UPDATE trips SET isDeleted = 1, updatedAt = ? WHERE id = ?`,
+                [now, id]
+            );
+            await get().loadTrips();
+        } catch (error) {
+            console.error("Error deleting trip", error);
+            throw error;
+        }
     },
 
     loadItinerary: async (tripId) => {
         set({ isLoading: true });
-        const db = getDB();
-        db.transaction((tx: any) => {
-            tx.executeSql(
-                'SELECT * FROM itinerary_items WHERE tripId = ? AND isDeleted = 0 ORDER BY dayIndex ASC, orderIndex ASC',
-                [tripId],
-                (_: any, { rows }: any) => {
-                    set({ itineraryItems: rows._array, isLoading: false });
-                },
-                (_: any, error: any) => {
-                    console.error("Error loading itinerary", error);
-                    set({ isLoading: false });
-                    return false;
-                }
+        try {
+            const db = getDB();
+            const itineraryItems = await db.getAllAsync<ItineraryItem>(
+                'SELECT * FROM activities WHERE tripId = ? AND (status != "DELETED" OR status IS NULL) ORDER BY dayId ASC, sortOrder ASC',
+                [tripId]
             );
-        });
+            set({ itineraryItems, isLoading: false });
+        } catch (error) {
+            console.error("Error loading itinerary", error);
+            set({ isLoading: false });
+        }
     },
 
-    addItineraryItem: async (tripId, title, dayIndex) => {
+    addItineraryItem: async (tripId, placeName, dayId) => {
         const db = getDB();
         const id = crypto.randomUUID();
         const now = new Date().toISOString();
-        // Get current max order index for the day to append
-        const currentItems = get().itineraryItems.filter(i => i.dayIndex === dayIndex);
-        const nextOrderIndex = currentItems.length > 0 ? Math.max(...currentItems.map(i => i.orderIndex)) + 1 : 0;
 
-        return new Promise<void>((resolve, reject) => {
-            db.transaction((tx: any) => {
-                tx.executeSql(
-                    `INSERT INTO itinerary_items (id, tripId, title, description, startTime, dayIndex, orderIndex, createdAt, updatedAt, isDeleted, dirty)
-                    VALUES (?, ?, ?, '', ?, ?, ?, ?, ?, 0, 1)`,
-                    [id, tripId, title, now, dayIndex, nextOrderIndex, now, now],
-                    () => {
-                        get().loadItinerary(tripId);
-                        resolve();
-                    },
-                    (_: any, error: any) => {
-                        console.error("Error adding itinerary item", error);
-                        reject(error);
-                        return false;
-                    }
-                );
-            });
-        });
+        // Get current max order index for the day to append
+        const currentItems = get().itineraryItems.filter(i => i.dayId === dayId);
+        // Safely calculate nextSortOrder
+        const maxOrder = currentItems.length > 0 ? Math.max(...currentItems.map(i => i.sortOrder || 0)) : 0;
+        const nextSortOrder = maxOrder + 1;
+
+        try {
+            await db.runAsync(
+                `INSERT INTO activities (id, tripId, placeName, dayId, sortOrder, status, createdAt, updatedAt)
+                 VALUES (?, ?, ?, ?, ?, 'PLANNED', ?, ?)`,
+                [id, tripId, placeName, dayId, nextSortOrder, now, now]
+            );
+            await get().loadItinerary(tripId);
+        } catch (error) {
+            console.error("Error adding itinerary item", error);
+            throw error;
+        }
     },
 
     reorderItineraryItems: async (items) => {
@@ -191,15 +158,23 @@ export const useTripStore = create<TripState>((set, get) => ({
         const db = getDB();
         const now = new Date().toISOString();
 
-        db.transaction((tx: any) => {
-            items.forEach((item, index) => {
-                if (item.orderIndex !== index) {
-                    tx.executeSql(
-                        `UPDATE itinerary_items SET orderIndex = ?, updatedAt = ?, dirty = 1 WHERE id = ?`,
-                        [index, now, item.id]
-                    );
+        try {
+            await db.withTransactionAsync(async () => {
+                for (let index = 0; index < items.length; index++) {
+                    const item = items[index];
+                    // Note: This logic assumes items are passed in the desired order
+                    if (item.sortOrder !== index) {
+                        await db.runAsync(
+                            `UPDATE activities SET sortOrder = ?, updatedAt = ? WHERE id = ?`,
+                            [index, now, item.id]
+                        );
+                    }
                 }
             });
-        }, (error: any) => console.error("Error reordering", error));
+        } catch (error) {
+            console.error("Error reordering", error);
+            // Optionally revert state here if needed
+        }
     }
 }));
+

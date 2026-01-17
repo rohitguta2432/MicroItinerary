@@ -24,6 +24,7 @@ public class SyncDtos {
     )
     @JsonSubTypes({
         @JsonSubTypes.Type(value = TripSyncOp.class, name = "TRIP"),
+        @JsonSubTypes.Type(value = PackingItemSyncOp.class, name = "PACKING_ITEM"),
         @JsonSubTypes.Type(value = ActivitySyncOp.class, name = "ACTIVITY"),
         // Add others as needed
     })
@@ -49,5 +50,12 @@ public class SyncDtos {
         public String placeName;
         public String notes;
         public String status;
+    }
+
+    public static class PackingItemSyncOp extends SyncOp {
+        public UUID tripId;
+        public String name;
+        public Boolean isChecked;
+        public Boolean deleted;
     }
 }

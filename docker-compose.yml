@@ -5,7 +5,7 @@ services:
     image: postgres:16-alpine
     container_name: microitinerary-postgres
     ports:
-      - "5432:5432"
+      - "5454:5432"
     environment:
       - POSTGRES_DB=microitinerary
       - POSTGRES_USER=postgres
@@ -16,7 +16,7 @@ services:
       - microitinerary-net
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: microitinerary-backend
@@ -33,6 +33,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   microitinerary-net:

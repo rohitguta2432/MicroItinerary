@@ -33,24 +33,24 @@ export default function CreateTripScreen() {
             updatedAt: now
         };
 
-        // 1. Local Write
-        getDb().transaction(tx => {
-            tx.executeSql(
-                'INSERT INTO trips (id, name, location, startDate, endDate, travelType, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [trip.id, trip.name, trip.location, trip.startDate, trip.endDate, trip.travelType, trip.createdAt, trip.updatedAt],
-                () => {
-                    // 2. Queue for Sync
-                    addToSyncQueue('TRIP', tripId, 'CREATE', trip);
-
-                    // 3. Navigate back
-                    router.replace('/');
-                },
-                (_, error) => {
-                    console.error(error);
-                    return false;
-                }
+        try {
+            // 1. Local Write
+            const db = getDb();
+            await db.runAsync(
+                'INSERT INTO trips (id, name, location, startDate, endDate, travelType, createdAt, updatedAt, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)',
+                [trip.id, trip.name, trip.location, trip.startDate, trip.endDate, trip.travelType, trip.createdAt, trip.updatedAt]
             );
-        });
+
+            // 2. Queue for Sync
+            // Ensure addToSyncQueue supports async as well if refactored, or is fire-and-forget
+            addToSyncQueue('TRIP', tripId, 'CREATE', trip);
+
+            // 3. Navigate back
+            router.replace('/');
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Failed to create trip');
+        }
     };
 
     return (
