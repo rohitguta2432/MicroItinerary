@@ -2,9 +2,9 @@ package com.microitinerary.controller;
 
 import com.microitinerary.domain.Trip;
 import com.microitinerary.repository.TripRepository;
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/trips")

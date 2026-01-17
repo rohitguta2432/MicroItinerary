@@ -10,8 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "packing_items")
 public class PackingItem {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(nullable = false)
     private UUID tripId;
