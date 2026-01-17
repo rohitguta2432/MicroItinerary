@@ -2,12 +2,10 @@ package com.microitinerary.controller;
 
 import com.microitinerary.dto.SyncDtos.*;
 import com.microitinerary.service.SyncService;
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/api/sync")
-@CrossOrigin(origins = "*") // For MVP
 public class SyncController {
 
     private final SyncService syncService;
@@ -17,7 +15,7 @@ public class SyncController {
     }
 
     @PostMapping("/push")
-    public void push(@RequestBody SyncPushRequest request) {
+    public void push(@RequestBody @Valid SyncPushRequest request) {
         syncService.processPush(request);
     }
 

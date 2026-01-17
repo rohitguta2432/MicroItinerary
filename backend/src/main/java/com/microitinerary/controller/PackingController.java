@@ -2,9 +2,9 @@ package com.microitinerary.controller;
 
 import com.microitinerary.domain.PackingItem;
 import com.microitinerary.repository.PackingItemRepository;
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/packing")
@@ -28,12 +28,15 @@ public class PackingController {
         // Simple sync: just save everything coming in (Last Write Wins)
         return packingItemRepository.saveAll(items);
     }
-    
+
     @DeleteMapping("/{id}")
     public void deletePackingItem(@PathVariable UUID id) {
-        packingItemRepository.findById(id).ifPresent(item -> {
-            item.setDeleted(true);
-            packingItemRepository.save(item);
-        });
+        packingItemRepository
+                .findById(id)
+                .ifPresent(
+                        item -> {
+                            item.setDeleted(true);
+                            packingItemRepository.save(item);
+                        });
     }
 }
