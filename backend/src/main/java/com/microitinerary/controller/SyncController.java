@@ -6,6 +6,9 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import org.springframework.web.bind.annotation.*;
 
+@RestController
+@RequestMapping("/api/sync")
+@CrossOrigin(origins = "*")
 public class SyncController {
 
     private final SyncService syncService;

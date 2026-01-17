@@ -70,7 +70,7 @@ const pushChanges = async () => {
                 id: item.entityId, // Ensure ID matches
                 operation: item.operation,
                 clientUpdatedAt: item.createdAt, // Use queue creation time as client update time
-                type: item.entityType // mapping needed? depends on backend DTO
+                entityType: item.entityType
             };
         });
 
@@ -103,30 +103,19 @@ const pullChanges = async () => {
             return;
         }
 
-        await db.withTransactionAsync(async () => {
-            for (const item of changes) {
-                // Determine type based on fields (or add type field in backend DTO if missing, but we used Object in DTO)
-                // Actually SyncDtos.java returns List<Object>. Jackson adds "@type" or similar if configured, 
-                // but our SyncController returns plain entities. 
-                // We should probably identify them by structure or add a type on backend.
-                // Checking backend SyncService.java:
-                // changes.addAll(tripRepository.findAll...);
-                // changes.addAll(activityRepository.findAll...);
-                // These are raw Entities. They don't have a discriminative field by default in JSON unless configured.
-
-                // Heuristic check:
-                if (item.hasOwnProperty('travelType')) {
-                    // It's a Trip
-                    await upsertTrip(db, item);
-                } else if (item.hasOwnProperty('placeName')) {
-                    // It's an Activity
-                    await upsertActivity(db, item);
-                } else if (item.hasOwnProperty('isChecked')) {
-                    // It's a Packing Item
-                    await upsertPackingItem(db, item);
-                }
+        for (const item of changes) {
+            // Determine type based on fields
+            if (item.hasOwnProperty('travelType')) {
+                // It's a Trip
+                await upsertTrip(db, item);
+            } else if (item.hasOwnProperty('placeName')) {
+                // It's an Activity
+                await upsertActivity(db, item);
+            } else if (item.hasOwnProperty('isChecked')) {
+                // It's a Packing Item
+                await upsertPackingItem(db, item);
             }
-        });
+        }
 
         setLastSync(new Date());
 
@@ -142,7 +131,8 @@ const pullChanges = async () => {
 
 const upsertTrip = async (db: any, trip: any) => {
     // Check if exists
-    const existing = await db.getFirstAsync('SELECT updatedAt FROM trips WHERE id = ?', [trip.id]);
+    const results = await db.getAllAsync('SELECT updatedAt FROM trips WHERE id = ?', [trip.id]);
+    const existing = results.length > 0 ? results[0] : null;
     if (existing) {
         // Update
         await db.runAsync(
@@ -159,7 +149,8 @@ const upsertTrip = async (db: any, trip: any) => {
 };
 
 const upsertActivity = async (db: any, activity: any) => {
-    const existing = await db.getFirstAsync('SELECT updatedAt FROM activities WHERE id = ?', [activity.id]);
+    const results = await db.getAllAsync('SELECT updatedAt FROM activities WHERE id = ?', [activity.id]);
+    const existing = results.length > 0 ? results[0] : null;
     const status = activity.status || 'PLANNED';
     if (existing) {
         await db.runAsync(
@@ -175,7 +166,8 @@ const upsertActivity = async (db: any, activity: any) => {
 };
 
 const upsertPackingItem = async (db: any, item: any) => {
-    const existing = await db.getFirstAsync('SELECT updatedAt FROM packing_items WHERE id = ?', [item.id]);
+    const results = await db.getAllAsync('SELECT updatedAt FROM packing_items WHERE id = ?', [item.id]);
+    const existing = results.length > 0 ? results[0] : null;
     const isChecked = item.checked ? 1 : 0; // Check java field name 'checked' vs 'isChecked'
     const isDeleted = item.deleted ? 1 : 0;
 

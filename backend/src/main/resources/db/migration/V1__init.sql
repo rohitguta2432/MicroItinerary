@@ -47,16 +47,6 @@ CREATE TABLE places (
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
 );
 
-CREATE TABLE packing_items (
-    id UUID PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    trip_id UUID NOT NULL,
-    label VARCHAR(255) NOT NULL,
-    is_packed BOOLEAN DEFAULT FALSE,
-    category VARCHAR(100),
-    FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
-);
 
 CREATE INDEX idx_trips_updated_at ON trips(updated_at);
 CREATE INDEX idx_activities_trip_id ON activities(trip_id);

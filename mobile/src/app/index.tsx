@@ -1,10 +1,19 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Link, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTripStore } from '../store/useTripStore';
+import { triggerSync } from '../services/syncService';
 
 export default function TripsListScreen() {
     const { trips, loadTrips, isLoading } = useTripStore();
+
+    useEffect(() => {
+        const initSync = async () => {
+            await triggerSync();
+            loadTrips();
+        };
+        initSync();
+    }, []);
 
     useFocusEffect(
         useCallback(() => {

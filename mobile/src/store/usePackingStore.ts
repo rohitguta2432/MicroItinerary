@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as SQLite from 'expo-sqlite';
-import { getDB } from '../db/Database';
+import { getDb } from '../db/schema';
 import { addToSyncQueue } from '../services/syncService';
 
 export interface PackingItem {
@@ -29,7 +29,7 @@ export const usePackingStore = create<PackingState>((set, get) => ({
     loadPackingItems: async (tripId) => {
         set({ isLoading: true });
         try {
-            const db = getDB();
+            const db = getDb();
             const packingItems = await db.getAllAsync<PackingItem>(
                 'SELECT * FROM packing_items WHERE tripId = ? AND (isDeleted = 0 OR isDeleted IS NULL) ORDER BY createdAt ASC',
                 [tripId]
@@ -42,7 +42,7 @@ export const usePackingStore = create<PackingState>((set, get) => ({
     },
 
     addPackingItem: async (tripId, name) => {
-        const db = getDB();
+        const db = getDb();
         const id = crypto.randomUUID();
         const now = new Date().toISOString();
 
@@ -66,7 +66,7 @@ export const usePackingStore = create<PackingState>((set, get) => ({
     },
 
     togglePackingItem: async (id, isChecked) => {
-        const db = getDB();
+        const db = getDb();
         const now = new Date().toISOString();
         const checkedVal = isChecked ? 1 : 0;
 
@@ -97,7 +97,7 @@ export const usePackingStore = create<PackingState>((set, get) => ({
     },
 
     deletePackingItem: async (id) => {
-        const db = getDB();
+        const db = getDb();
         const now = new Date().toISOString();
         const item = get().packingItems.find(i => i.id === id);
         const tripId = item?.tripId || '';
