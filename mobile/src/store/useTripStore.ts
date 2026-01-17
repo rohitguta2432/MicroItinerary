@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import * as SQLite from 'expo-sqlite';
 import dayjs from 'dayjs';
-import { getDB } from '../db/Database';
+import { getDb } from '../db/schema';
 
 // Types
 // Types
@@ -53,7 +53,7 @@ export const useTripStore = create<TripState>((set, get) => ({
     loadTrips: async () => {
         set({ isLoading: true });
         try {
-            const db = getDB();
+            const db = getDb();
             const trips = await db.getAllAsync<Trip>('SELECT * FROM trips WHERE isDeleted = 0 OR isDeleted IS NULL ORDER BY startDate ASC');
             set({ trips, isLoading: false });
         } catch (error) {
@@ -63,7 +63,7 @@ export const useTripStore = create<TripState>((set, get) => ({
     },
 
     addTrip: async (name, location, startDate, endDate) => {
-        const db = getDB();
+        const db = getDb();
         const id = crypto.randomUUID();
         const now = new Date().toISOString();
 
@@ -81,7 +81,7 @@ export const useTripStore = create<TripState>((set, get) => ({
     },
 
     updateTrip: async (id, name, startDate, endDate) => {
-        const db = getDB();
+        const db = getDb();
         const now = new Date().toISOString();
         try {
             await db.runAsync(
@@ -98,7 +98,7 @@ export const useTripStore = create<TripState>((set, get) => ({
     },
 
     deleteTrip: async (id) => {
-        const db = getDB();
+        const db = getDb();
         const now = new Date().toISOString();
         try {
             await db.runAsync(
@@ -115,7 +115,7 @@ export const useTripStore = create<TripState>((set, get) => ({
     loadItinerary: async (tripId) => {
         set({ isLoading: true });
         try {
-            const db = getDB();
+            const db = getDb();
             const itineraryItems = await db.getAllAsync<ItineraryItem>(
                 'SELECT * FROM activities WHERE tripId = ? AND (status != "DELETED" OR status IS NULL) ORDER BY dayId ASC, sortOrder ASC',
                 [tripId]
@@ -128,7 +128,7 @@ export const useTripStore = create<TripState>((set, get) => ({
     },
 
     addItineraryItem: async (tripId, placeName, dayId) => {
-        const db = getDB();
+        const db = getDb();
         const id = crypto.randomUUID();
         const now = new Date().toISOString();
 
@@ -155,7 +155,7 @@ export const useTripStore = create<TripState>((set, get) => ({
         // Optimistically update state
         set({ itineraryItems: items });
 
-        const db = getDB();
+        const db = getDb();
         const now = new Date().toISOString();
 
         try {
