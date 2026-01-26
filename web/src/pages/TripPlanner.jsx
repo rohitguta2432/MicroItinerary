@@ -80,8 +80,8 @@ const TripPlanner = () => {
     };
 
     return (
-        <div className="container" style={{ paddingTop: '100px', minHeight: '90vh' }}>
-            <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem' }}>
+        <div className="container" style={{ minHeight: '90vh' }}>
+            <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', padding: 'clamp(1.5rem, 5vw, 3rem)' }}>
 
                 {/* Step Indicator */}
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '3rem' }}>
@@ -108,7 +108,7 @@ const TripPlanner = () => {
                                 <Sparkles className="text-primary" />
                                 Where next?
                             </h2>
-                            <div className="grid-auto" style={{ gap: '1.5rem' }}>
+                            <div className="grid-auto grid-responsive" style={{ gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Month</label>
                                     <select value={formData.month} onChange={e => setFormData({ ...formData, month: e.target.value })}>
@@ -152,9 +152,9 @@ const TripPlanner = () => {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                         >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                                <h2>AI Recommended Destinantions</h2>
-                                <button className="btn-ghost" onClick={() => setStep(1)} style={{ padding: '0.5rem 1rem' }}>Back</button>
+                            <div className="flex-between mobile-stack" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
+                                <h2>AI Recommended Destinations</h2>
+                                <button className="btn-ghost mobile-full-width" onClick={() => setStep(1)} style={{ padding: '0.5rem 1rem', marginTop: '0.5rem' }}>Back</button>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {suggestions.map((dest, i) => (

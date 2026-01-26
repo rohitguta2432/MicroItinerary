@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import TripPlanner from './pages/TripPlanner';
 import ExpenseTracker from './pages/ExpenseTracker';
+import AdminDashboard from './pages/AdminDashboard';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -26,6 +27,12 @@ const ProtectedRoute = ({ children }) => {
 
 const App = () => {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  React.useEffect(() => {
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
@@ -56,6 +63,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ExpenseTracker />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
                   </ProtectedRoute>
                 }
               />

@@ -37,14 +37,18 @@ public class AuthService {
         this.objectMapper = new ObjectMapper();
     }
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AuthService.class);
+
     /**
      * Authenticate user with Google ID token (from frontend Google Sign-In)
      */
     public AuthResponse authenticateWithIdToken(String idToken) {
         try {
+            logger.debug("Validating ID token");
             // Decode the ID token (it's a JWT)
             String[] parts = idToken.split("\\.");
             if (parts.length != 3) {
+                logger.error("Invalid ID token format: parts length is {}", parts.length);
                 throw new RuntimeException("Invalid ID token format");
             }
 
@@ -55,6 +59,7 @@ public class AuthService {
             // Verify the token is for our app
             String aud = claims.has("aud") ? claims.get("aud").asText() : "";
             if (!aud.equals(googleClientId)) {
+                logger.error("Invalid token audience. Expected: {}, Got: {}", googleClientId, aud);
                 throw new RuntimeException("Invalid token audience");
             }
 
@@ -64,6 +69,8 @@ public class AuthService {
             String name = claims.has("name") ? claims.get("name").asText() : email;
             String picture = claims.has("picture") ? claims.get("picture").asText() : null;
 
+            logger.debug("Token valid for user: {}", email);
+
             // Find or create user
             User user = userRepository.findByGoogleId(googleId)
                     .orElseGet(() -> {
@@ -71,6 +78,7 @@ public class AuthService {
                         return userRepository.findByEmail(email)
                                 .map(existingUser -> {
                                     // Link Google account to existing user
+                                    logger.info("Linking Google account to existing user: {}", email);
                                     existingUser.setGoogleId(googleId);
                                     existingUser.setName(name);
                                     existingUser.setPictureUrl(picture);
@@ -78,6 +86,7 @@ public class AuthService {
                                 })
                                 .orElseGet(() -> {
                                     // Create new user
+                                    logger.info("Creating new user: {}", email);
                                     User newUser = new User(email, name, picture, googleId);
                                     return userRepository.save(newUser);
                                 });
@@ -110,6 +119,7 @@ public class AuthService {
                             user.getName(),
                             user.getPictureUrl()));
         } catch (Exception e) {
+            logger.error("Error authenticating with ID token", e);
             throw new RuntimeException("Failed to authenticate with Google: " + e.getMessage(), e);
         }
     }

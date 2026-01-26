@@ -45,6 +45,21 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const devLogin = async (email, name) => {
+        try {
+            const res = await authApi.devLogin(email, name);
+            const { accessToken, user: userData } = res.data;
+
+            localStorage.setItem('token', accessToken);
+            localStorage.setItem('user', JSON.stringify(userData));
+            setUser(userData);
+            return userData;
+        } catch (err) {
+            console.error('Guest login failed', err);
+            throw err;
+        }
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -52,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, devLogin, logout }}>
             {children}
         </AuthContext.Provider>
     );

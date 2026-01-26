@@ -23,9 +23,15 @@ public class AuthController {
      * Authenticate with Google ID token (from frontend Google Sign-In)
      * This is the primary authentication method for the PWA
      */
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AuthController.class);
+
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> authenticateWithGoogle(@RequestBody GoogleAuthRequest request) {
         try {
+            logger.info("Received Google auth request. Has ID Token: {}, Has Code: {}",
+                    request.idToken() != null && !request.idToken().isEmpty(),
+                    request.code() != null && !request.code().isEmpty());
+
             AuthResponse response;
 
             if (request.idToken() != null && !request.idToken().isEmpty()) {
@@ -36,13 +42,17 @@ public class AuthController {
                 String redirectUri = request.redirectUri() != null
                         ? request.redirectUri()
                         : "postmessage"; // Default for popup flow
+                logger.info("Authenticating with code. Redirect URI: {}", redirectUri);
                 response = authService.authenticateWithCode(request.code(), redirectUri);
             } else {
+                logger.warn("Request missing both ID token and code");
                 return ResponseEntity.badRequest().build();
             }
 
+            logger.info("Authentication successful for email: {}", response.user().email());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.error("Authentication failed", e);
             return ResponseEntity.status(401).body(null);
         }
     }

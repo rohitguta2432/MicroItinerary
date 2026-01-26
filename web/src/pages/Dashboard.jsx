@@ -54,24 +54,25 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="container" style={{ paddingTop: '100px', paddingBottom: '50px' }}>
+        <div className="container">
             {/* Header Section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+            <div className="flex-between mobile-stack" style={{ marginBottom: '3rem', alignItems: 'flex-end' }}>
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                 >
                     <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>Annual Roadmap</span>
-                    <h1 style={{ fontSize: '2.5rem' }}>{viewYear} Travel Plan</h1>
+                    <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)' }}>{viewYear} Travel Plan</h1>
                     <p style={{ color: 'var(--text-secondary)' }}>Visualize your journeys across the year.</p>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    style={{ display: 'flex', gap: '1rem' }}
+                    className="flex-gap-1 mobile-stack mobile-full-width"
+                    style={{ marginTop: '1rem' }}
                 >
-                    <div className="glass-card" style={{ padding: '0.75rem 1.5rem', display: 'flex', gap: '2rem' }}>
+                    <div className="glass-card mobile-full-width" style={{ padding: '0.75rem 1.5rem', display: 'flex', gap: '2rem', justifyContent: 'space-between' }}>
                         <div>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Budget Allocation</p>
                             <p style={{ fontWeight: '600' }}>₹{currentPlan?.totalBudget?.toLocaleString() || 0}</p>
@@ -82,7 +83,7 @@ const Dashboard = () => {
                             <p style={{ fontWeight: '600', color: 'var(--primary)' }}>₹{calendarData?.plannedCost?.toLocaleString() || 0}</p>
                         </div>
                     </div>
-                    <Link to="/plan" className="btn-primary" style={{ height: '100%', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Link to="/plan" className="btn-primary mobile-full-width" style={{ height: 'auto', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
                         <Plus size={20} />
                         <span>New Trip</span>
                     </Link>

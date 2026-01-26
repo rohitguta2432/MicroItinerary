@@ -80,3 +80,9 @@ export const aiApi = {
     quickSuggest: (month, groupType, travelType, budget) =>
         api.get(`/ai/suggest/${month}`, { params: { groupType, travelType, budget } }),
 };
+
+export const adminApi = {
+    getUsers: () => api.get('/admin/users'),
+    getActivity: () => api.get('/admin/activity'),
+    getIssues: () => api.get('/admin/issues'),
+};
