@@ -6,9 +6,10 @@ import { Compass, ShieldCheck, Zap, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage = () => {
-    const { login, user, loading } = useAuth();
+    const { login, devLogin, user, loading } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
+    const [guestLoading, setGuestLoading] = useState(false);
 
     if (loading) return null;
     if (user) return <Navigate to="/" />;
@@ -19,6 +20,18 @@ const LoginPage = () => {
             navigate('/');
         } catch (err) {
             setError('Login failed. Please try again.');
+        }
+    };
+
+    const handleGuestLogin = async () => {
+        try {
+            setGuestLoading(true);
+            await devLogin('guest@example.com', 'Guest Traveler');
+            navigate('/');
+        } catch (err) {
+            setError('Guest login failed. Please try again.');
+        } finally {
+            setGuestLoading(false);
         }
     };
 
@@ -90,14 +103,36 @@ const LoginPage = () => {
                     </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <GoogleLogin
-                        onSuccess={handleSuccess}
-                        onError={() => setError('Google Login Failed')}
-                        useOneTap
-                        theme="filled_blue"
-                        shape="pill"
-                    />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <GoogleLogin
+                            onSuccess={handleSuccess}
+                            onError={() => setError('Google Login Failed')}
+                            useOneTap
+                            theme="filled_blue"
+                            shape="pill"
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleGuestLogin}
+                        disabled={guestLoading}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            color: 'var(--text-primary)',
+                            padding: '0.5rem 1.5rem',
+                            borderRadius: '9999px',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {guestLoading ? 'Signing in...' : 'Continue as Guest'}
+                    </button>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        (Development Mode)
+                    </div>
                 </div>
 
                 <p style={{ marginTop: '2rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>

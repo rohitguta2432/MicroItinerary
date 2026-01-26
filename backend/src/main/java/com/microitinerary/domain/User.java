@@ -29,10 +29,14 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     public User() {
         this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.role = "USER";
     }
 
     public User(String email, String name, String pictureUrl, String googleId) {
@@ -41,6 +45,17 @@ public class User {
         this.name = name;
         this.pictureUrl = pictureUrl;
         this.googleId = googleId;
+        this.role = "USER";
+    }
+
+    // ... existing methods ...
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     @PreUpdate

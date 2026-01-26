@@ -83,18 +83,18 @@ const ExpenseTracker = () => {
     };
 
     return (
-        <div className="container" style={{ paddingTop: '100px', paddingBottom: '50px', position: 'relative' }}>
+        <div className="container" style={{ position: 'relative' }}>
 
             {/* Trip Selector Header */}
-            <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="mobile-stack" style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1 style={{ fontSize: '2.5rem' }}>Expense Hub</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>Track spending and balance group costs.</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Track spending and balance group costs.</p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div className="mobile-stack mobile-full-width" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                     <select
-                        className="glass"
+                        className="glass mobile-full-width"
                         style={{ padding: '0.75rem 1.5rem', width: 'auto' }}
                         onChange={(e) => handleSelectTrip(trips.find(t => t.id === e.target.value))}
                         value={selectedTrip?.id || ''}
@@ -103,24 +103,26 @@ const ExpenseTracker = () => {
                             <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
                     </select>
-                    <button className="btn-primary" onClick={() => setShowAddModal(true)}>
-                        <Plus size={20} />
-                        <span>Add Expense</span>
-                    </button>
                 </div>
             </div>
 
             {loading && !expenses.length ? (
                 <div style={{ textAlign: 'center', padding: '5rem' }}>Loading finances...</div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
+                <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
 
                     {/* Expenses List */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Receipt size={20} className="text-primary" />
-                            Recent Transactions
-                        </h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Receipt size={20} className="text-primary" />
+                                Recent Transactions
+                            </h2>
+                            <button className="btn-primary fab-mobile" onClick={() => setShowAddModal(true)}>
+                                <Plus size={20} />
+                                <span>Add Expense</span>
+                            </button>
+                        </div>
 
                         {expenses.length > 0 ? (
                             expenses.map((exp, i) => (
