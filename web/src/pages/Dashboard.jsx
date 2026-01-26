@@ -47,7 +47,7 @@ const Dashboard = () => {
             <div className="container" style={{ paddingTop: '120px', textAlign: 'center' }}>
                 <div className="animate-fade-in" style={{ color: 'var(--text-secondary)' }}>
                     <Sparkles className="text-primary" style={{ marginBottom: '1rem' }} />
-                    <p>Analyzing your 2024 travel possibilities...</p>
+                    <p>Analyzing your {new Date().getFullYear()} travel possibilities...</p>
                 </div>
             </div>
         );

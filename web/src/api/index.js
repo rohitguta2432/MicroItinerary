@@ -49,7 +49,7 @@ export const plansApi = {
     getCurrent: () => USE_MOCK ? Promise.resolve({ data: mock.mockPlans[0] }) : api.get('/plans/current'),
     getById: (id) => USE_MOCK ? Promise.resolve({ data: mock.mockPlans[0] }) : api.get(`/plans/${id}`),
     getCalendar: (id) => USE_MOCK ? Promise.resolve({ data: mock.mockCalendar }) : api.get(`/plans/${id}/calendar`),
-    create: (data) => api.post('/plans', data),
+    create: (data) => USE_MOCK ? Promise.resolve({ data: { ...data, id: 'mock-plan' } }) : api.post('/plans', data),
     update: (id, data) => api.put(`/plans/${id}`, data),
     delete: (id) => api.delete(`/plans/${id}`),
 };
@@ -58,7 +58,7 @@ export const tripsApi = {
     getAll: () => USE_MOCK ? Promise.resolve({ data: mock.mockTrips }) : api.get('/trips'),
     getById: (id) => api.get(`/trips/${id}`),
     getMembers: (id) => api.get(`/trips/${id}/members`),
-    create: (data) => api.post('/trips', data),
+    create: (data) => USE_MOCK ? Promise.resolve({ data: { ...data, id: 'mock-trip' } }) : api.post('/trips', data),
     update: (id, data) => api.put(`/trips/${id}`, data),
     delete: (id) => api.delete(`/trips/${id}`),
     invite: (id, email) => api.post(`/trips/${id}/invite`, { email }),

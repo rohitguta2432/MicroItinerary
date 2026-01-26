@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { aiApi, tripsApi, plansApi } from '../api';
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 const TripPlanner = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -30,13 +32,25 @@ const TripPlanner = () => {
 
     const handleSuggest = async () => {
         setLoading(true);
+
+        let budgetMin = 20000;
+        let budgetMax = 50000;
+
+        if (formData.budgetLevel === 'LOW') {
+            budgetMin = 5000;
+            budgetMax = 20000;
+        } else if (formData.budgetLevel === 'LUXURY') {
+            budgetMin = 50000;
+            budgetMax = 200000;
+        }
+
         try {
             const res = await aiApi.suggestDestinations({
                 month: parseInt(formData.month),
                 groupType: formData.groupType,
                 travelType: formData.travelType,
-                budgetMin: 5000,
-                budgetMax: 50000,
+                budgetMin: budgetMin,
+                budgetMax: budgetMax,
                 durationDays: formData.durationDays
             });
             setSuggestions(res.data.suggestions);
@@ -58,6 +72,7 @@ const TripPlanner = () => {
         try {
             // In a real app, we'd get the current annual plan ID
             const planRes = await plansApi.getCurrent();
+            const year = new Date().getFullYear();
 
             await tripsApi.create({
                 annualPlanId: planRes.data.id,
@@ -65,8 +80,8 @@ const TripPlanner = () => {
                 destinationCountry: formData.destination.country,
                 destinationState: formData.destination.state,
                 destinationCity: formData.destination.city,
-                startDate: new Date(2024, formData.month - 1, 15).toISOString().split('T')[0],
-                endDate: new Date(2024, formData.month - 1, 15 + formData.durationDays).toISOString().split('T')[0],
+                startDate: new Date(year, formData.month - 1, 15).toISOString().split('T')[0],
+                endDate: new Date(year, formData.month - 1, 15 + formData.durationDays).toISOString().split('T')[0],
                 travelType: formData.travelType,
                 groupType: formData.groupType,
                 estimatedCost: formData.destination.estimatedDailyCost * formData.durationDays
@@ -112,7 +127,7 @@ const TripPlanner = () => {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Month</label>
                                     <select value={formData.month} onChange={e => setFormData({ ...formData, month: e.target.value })}>
-                                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
+                                        {MONTHS.map((m, i) => (
                                             <option key={m} value={i + 1}>{m}</option>
                                         ))}
                                     </select>
@@ -153,7 +168,7 @@ const TripPlanner = () => {
                             exit={{ opacity: 0, x: -20 }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                                <h2>AI Recommended Destinantions</h2>
+                                <h2>AI Recommended Destinations</h2>
                                 <button className="btn-ghost" onClick={() => setStep(1)} style={{ padding: '0.5rem 1rem' }}>Back</button>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -190,7 +205,12 @@ const TripPlanner = () => {
                                 <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>
                                         <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>DATES</label>
-                                        <input type="text" value="Oct 15 - Oct 19, 2024" readOnly />
+                                        <input type="text" value={(() => {
+                                            const year = new Date().getFullYear();
+                                            const start = new Date(year, formData.month - 1, 15);
+                                            const end = new Date(year, formData.month - 1, 15 + formData.durationDays);
+                                            return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${year}`;
+                                        })()} readOnly />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ESTIMATED COST</label>
@@ -214,7 +234,7 @@ const TripPlanner = () => {
                             <CheckCircle2 size={80} className="text-success" style={{ margin: '0 auto 2rem' }} />
                             <h1 style={{ marginBottom: '1rem' }}>Journey Scheduled!</h1>
                             <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>
-                                Your trip to {formData.destination?.city} has been added to your 2024 annual plan.
+                                Your trip to {formData.destination?.city} has been added to your {new Date().getFullYear()} annual plan.
                             </p>
                             <button onClick={() => window.location.href = '/'} className="btn-primary" style={{ padding: '1rem 3rem' }}>
                                 View Dashboard
