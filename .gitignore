@@ -29,3 +29,8 @@ mobile/.expo/
 # Database
 *.db
 *.sqlite
+
+# Environment files (contains API keys)
+.env
+.env.local
+.env.*.local

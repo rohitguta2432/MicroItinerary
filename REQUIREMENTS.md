@@ -1,75 +1,143 @@
 # Product Requirements & Feature Use Cases
 
 ## 1. Product Overview
-**Product Name**: MicroItinerary
-**Vision**: A robust, offline-first mobile application that allows travelers to plan, manage, and execute detailed travel itineraries without relying on constant internet connectivity.
-**Key Value Proposition**: Seamless synchronization ensures data integrity across devices while prioritizing a fluid, offline-capable user experience.
+**Product Name**: MicroItinerary - AI Travel Planner
+**Vision**: An AI-powered Progressive Web Application (PWA) that helps travelers plan their entire year of travel with intelligent destination suggestions, cost estimation, and collaborative expense management.
+**Key Value Proposition**: AI-driven travel planning with smart budgeting and group expense splitting, all accessible offline.
 
 ## 2. Functional Requirements
 
-### FR-001: Trip Management
-- **Description**: Users can organize their travels into distinct trips.
+### FR-001: User Authentication
+- **Description**: Users can sign in using their Google account.
 - **Requirements**:
-    - User shall be able to create a new trip with a Title, Start Date, and End Date.
-    - User shall be able to view a list of all trips, sorted by date.
-    - User shall be able to edit trip details or delete a trip.
-    - All actions must be available offline.
+    - User shall be able to sign in with Google OAuth.
+    - User profile (name, email, picture) shall be stored.
+    - User shall stay logged in across sessions (JWT).
+    - User can log out from any device.
 
-### FR-002: Itinerary Planning
-- **Description**: Users can plan activities for each day of their trip.
+### FR-002: Annual Trip Planning
+- **Description**: Users can create and manage an annual travel plan.
 - **Requirements**:
-    - User shall be able to see a day-by-day view of the trip.
-    - User shall be able to add activities to specific days with a title and time.
-    - User shall be able to reorder activities within a day using drag-and-drop.
-    - Reordering must persist and sync to the server.
+    - User shall be able to create an annual plan with a name and total budget (INR).
+    - User shall see a 12-month calendar view of their trips.
+    - User shall be able to assign trips to specific months.
+    - Dashboard shows budget usage vs remaining.
 
-### FR-003: Offline Sync Capability
-- **Description**: Data must sync between the local device and the server when online.
+### FR-003: AI-Powered Destination Suggestions
+- **Description**: Users receive intelligent destination recommendations.
 - **Requirements**:
-    - The app must queue all local changes (Creates, Updates, Deletes) when offline.
-    - The app must automatically push local changes and pull remote updates when connectivity is restored (or triggered manually).
-    - Conflict Resolution: "Last-Write-Wins" strategy based on `updatedAt` timestamps.
+    - User shall be able to request AI suggestions based on:
+        - Month/Season
+        - Budget range
+        - Group type (Solo/Friends/Family)
+        - Preferred amenities
+    - Suggestions shall include reasoning (e.g., "December is perfect for Goa beaches").
+    - Suggestions shall be cached for offline access.
 
-### FR-004: Packing List (Future Scope)
-- **Description**: A checklist for items to pack.
+### FR-004: AI Cost Estimation
+- **Description**: Users receive AI-generated cost breakdowns.
 - **Requirements**:
-    - User can add items and toggle their "checked" state.
+    - User shall receive estimated costs in INR for:
+        - Accommodation
+        - Food & Dining
+        - Transportation
+        - Activities & Entry Fees
+        - Miscellaneous
+    - Estimates consider: destination, duration, group size, amenities.
+    - User shall be able to adjust estimates manually.
 
-## 3. Feature Use Cases
+### FR-005: Trip Management
+- **Description**: Users can create and manage individual trips.
+- **Requirements**:
+    - User shall create trips with:
+        - Name, Destination (Country/State/City)
+        - Start Date, End Date
+        - Travel Type (Leisure/Business/Adventure/Religious)
+        - Group Type (Solo/Friends/Family)
+        - Required Amenities (WiFi, Food, Parking, Pool, etc.)
+    - User shall edit and delete trips.
+    - Multi-step trip creation wizard.
 
-### UC-001: Creating a Weekend Getaway (Offline)
-**Actor**: Traveler (Alice)
-**Precondition**: Alice is on a flight with no Wi-Fi.
-**Flow**:
-1. Alice opens MicroItinerary.
-2. Taps "Add Trip".
-3. Enters "Weekend in Rome", Date: "May 1 - May 3".
-4. Taps "Save".
-5. App saves trip locally with `dirty=1` flag.
-**Postcondition**: Trip appears in the list. Data is pending sync.
+### FR-006: Group Collaboration
+- **Description**: Users can invite others to join trips.
+- **Requirements**:
+    - Trip owner can invite members via:
+        - Email invitation
+        - Shareable invite link
+    - Invited users receive email with invitation.
+    - Invited users can accept/decline invitation.
+    - Trip shows all members.
 
-### UC-002: Reordering Activities
-**Actor**: Traveler (Bob)
-**Precondition**: Bob has a trip with 3 activities: "Museum", "Lunch", "Park".
-**Flow**:
-1. Bob decides to go to the Park before Lunch.
-2. Bob opens the Itinerary View.
-3. Long-presses "Park" and drags it above "Lunch".
-4. Releases the item.
-**Postcondition**: The order is updated in the UI and database (`orderIndex` changed).
+### FR-007: Expense Tracking
+- **Description**: Users can track trip expenses.
+- **Requirements**:
+    - User shall add expenses with:
+        - Amount (INR)
+        - Category (Hotel/Food/Transport/Activity/Other)
+        - Description
+        - Who paid
+    - Expense list shows all trip expenses.
+    - Running total displayed.
 
-### UC-003: Syncing Back Online
-**Actor**: Traveler (Alice)
-**Precondition**: Alice lands and connects to airport Wi-Fi.
-**Flow**:
-1. Alice opens the app / pulls-to-refresh.
-2. App detects network.
-3. App sends "Weekend in Rome" trip to backend.
-4. Backend saves trip and returns success.
-5. App marks local record as clean (`dirty=0`).
-**Postcondition**: Trip is safely backed up on the server.
+### FR-008: Expense Splitting (Splitwise-style)
+- **Description**: Expenses are automatically split among group members.
+- **Requirements**:
+    - Expenses split equally by default.
+    - User can specify custom split amounts.
+    - System calculates "who owes whom".
+    - User can mark splits as settled.
+    - Settlement summary shows net balances.
 
-## 4. Technical Non-Functional Requirements
-- **Performance**: App must load content from local DB instantly (<100ms).
-- **Reliability**: Sync must not lose data; verified via soft-deletes and extensive transaction logs.
-- **Compatibility**: Support for Android and iOS (via Expo).
+### FR-009: Cost Analyzer
+- **Description**: Users can analyze trip costs.
+- **Requirements**:
+    - View cost breakdown by category (pie chart).
+    - Compare estimated vs actual costs.
+    - See per-person cost summary.
+    - View cost trends across trips.
+
+### FR-010: PWA & Offline Support
+- **Description**: App works offline and is installable.
+- **Requirements**:
+    - App is installable on mobile and desktop.
+    - Static assets cached for offline access.
+    - AI suggestions cached for offline viewing.
+    - Changes made offline sync when online.
+    - Offline indicator shows connection status.
+
+### FR-011: Amenities Filtering
+- **Description**: Users can filter destinations by amenities.
+- **Requirements**:
+    - Supported amenities:
+        - WiFi
+        - Breakfast included
+        - Parking
+        - Pool
+        - Gym
+        - Pet-friendly
+        - Airport shuttle
+    - AI suggestions consider amenity preferences.
+
+## 3. Non-Functional Requirements
+
+### Performance
+- Page load: < 2 seconds (online), < 100ms (cached/offline)
+- AI response: < 5 seconds
+
+### Security
+- All API calls authenticated via JWT
+- API keys stored securely (not in frontend)
+- HTTPS required in production
+
+### Scalability
+- Support for Redis caching (AI responses)
+- Database indexing for query performance
+
+### Compatibility
+- Modern browsers: Chrome, Edge, Safari, Firefox
+- Mobile: Android, iOS (via PWA)
+- Desktop: Windows, macOS, Linux (via PWA)
+
+## 4. Currency
+- All monetary values in Indian Rupees (₹ INR)
+- No currency conversion required

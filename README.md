@@ -1,83 +1,134 @@
-# MicroItinerary
+# MicroItinerary - AI Travel Planner
 
-A comprehensive, offline-first travel itinerary builder featuring a React Native mobile app and a Spring Boot backend, designed for seamless travel planning with or without an internet connection.
+An AI-powered Progressive Web Application (PWA) for planning annual travel itineraries. Features intelligent destination suggestions, cost estimation in INR, and Splitwise-style expense splitting for group trips.
+
+## ✨ Features
+
+- **📅 Annual Trip Planning** - Plan trips for an entire year with a 12-month calendar view
+- **🤖 AI-Powered Suggestions** - Get destination recommendations based on season, budget, and preferences
+- **💰 Cost Estimation** - AI-generated cost breakdowns in INR for hotels, food, transport, and activities
+- **👥 Group Travel** - Support for solo, friends, and family trips
+- **💸 Expense Splitting** - Splitwise-style expense tracking and settlement
+- **🏨 Amenities Filter** - Filter by WiFi, food, parking, and more
+- **📱 PWA** - Install on mobile and desktop, works offline
+- **🔐 Google Login** - Secure authentication with Google OAuth
 
 ## 🏗️ Architecture
 
-### Frontend (Mobile)
-- **Framework**: React Native (Expo Managed Workflow)
-- **Language**: TypeScript
-- **State Management**: Zustand
-- **Local Database**: Expo SQLite
-- **Network**: Axios
-- **Sync Strategy**: 
-    - Offline-first: All writes go to SQLite immediately.
-    - Sync Queue: Mutations are logged in a local `sync_queue` table.
-    - Push/Pull: Background service pushes local changes and pulls server updates.
+### Tech Stack
 
-### Backend (Server)
-- **Framework**: Spring Boot 3 (Java 21)
-- **Database**: PostgreSQL
-- **Migrations**: Flyway
-- **Conflict Resolution**: Last-Write-Wins based on precise timestamps.
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 18 + Vite + PWA |
+| **Styling** | CSS (modern design system) |
+| **Backend** | Spring Boot 3.2.2 + Java 21 |
+| **Database** | PostgreSQL 16 |
+| **Authentication** | Google OAuth 2.0 + JWT |
+| **AI** | OpenAI GPT-4 API |
+| **Caching** | Redis |
+
+### External APIs
+
+- **OpenAI API** - Destination suggestions, cost estimation
+- **Country State City API** - Location data
+- **REST Countries API** - Country metadata
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js & npm/yarn
+
 - Java 21 JDK
-- PostgreSQL
-- Expo Go App (on your phone) or Android Emulator
+- Node.js 18+
+- PostgreSQL 16
+- Redis
+- OpenAI API Key
+- Google OAuth Credentials
 
-### Backend Setup
-1.  Navigate to `backend/`.
-2.  Ensure PostgreSQL is running and create a database named `microitinerary`.
-3.  Update `src/main/resources/application.yml` with your DB credentials.
-4.  Run the application:
-    ```bash
-    ./mvnw spring-boot:run
-    ```
-    (On first run, Flyway will create the tables automatically).
+### Setup
 
-### Mobile Setup
-1.  Navigate to `mobile/`.
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Start the Expo server:
-    ```bash
-    npx expo start
-    ```
-4.  Scan the QR code with your phone or press `a` for Android Emulator.
-    *Note: If using Android Emulator, ensure the backend URL in `src/services/syncService.ts` is set to `http://10.0.2.2:8080`.*
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url>
+   cd microitinerary
+   ```
+
+2. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+3. **Start the database and Redis**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Run the backend**
+   ```bash
+   cd backend
+   ./mvnw spring-boot:run
+   ```
+
+5. **Run the frontend**
+   ```bash
+   cd web
+   npm install
+   npm run dev
+   ```
+
+6. **Open the app**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8080
+   - Swagger UI: http://localhost:8080/swagger-ui.html
 
 ## 📂 Project Structure
 
 ```
 microitinerary/
-├── backend/                # Spring Boot Project
-│   ├── src/main/java/      # Java Source (Controllers, Services, Entities)
-│   └── src/main/resources/ # Config & Migrations
-└── mobile/                 # React Native Project
-    ├── src/app/            # Screens & Navigation
-    ├── src/db/             # SQLite Schema & Client
-    ├── src/services/       # Sync Logic
-    └── src/store/          # Zustand State
+├── backend/                    # Spring Boot Backend
+│   ├── src/main/java/
+│   │   └── com/microitinerary/
+│   │       ├── config/         # Security, OAuth, Redis config
+│   │       ├── controller/     # REST Controllers
+│   │       ├── domain/         # JPA Entities
+│   │       ├── dto/            # Data Transfer Objects
+│   │       ├── repository/     # JPA Repositories
+│   │       └── service/        # Business Logic + AI Integration
+│   └── src/main/resources/
+│       ├── application.yml     # App config
+│       └── db/migration/       # Flyway migrations
+├── web/                        # React PWA Frontend
+│   ├── public/
+│   │   ├── manifest.json       # PWA manifest
+│   │   └── service-worker.js   # Offline support
+│   └── src/
+│       ├── api/                # API clients
+│       ├── components/         # React components
+│       ├── context/            # Auth & offline context
+│       ├── db/                 # IndexedDB utilities
+│       └── pages/              # Page components
+├── docker-compose.yml          # PostgreSQL + Redis
+├── .env.example                # Environment template
+└── test/                       # API tests
 ```
 
-## 🔄 Sync Flow Explained
-1.  **User Action**: User creates a Trip.
-2.  **Local Commit**: Trip is saved to SQLite `trips` table.
-3.  **Queue**: An entry is added to `sync_queue` with status `PENDING`.
-4.  **Sync Trigger**: App detects network.
-5.  **Push**: `syncService` sends queued items to `POST /api/sync/push`.
-6.  **Pull**: Service requests updates via `GET /api/sync/pull`.
-7.  **Merge**: Server changes are applied to local SQLite.
+## 🔧 Environment Variables
 
-## ✅ MVP Features
-- Create/Edit Trips
-- Add Places to a "Bucket"
-- Drag & Drop Itinerary Planning (Placeholder UI)
-- Offline Capability
-- Basic Sync System
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_API_KEY` | OpenAI API key for AI features |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `JWT_SECRET` | Secret for JWT token signing |
+| `POSTGRES_*` | Database connection details |
+| `REDIS_*` | Redis connection details |
+
+## 📱 PWA Features
+
+- **Installable** - Add to home screen on mobile and desktop
+- **Offline Support** - Cached pages and AI responses work offline
+- **Background Sync** - Changes sync when connection is restored
+
+## 📄 License
+
+MIT License

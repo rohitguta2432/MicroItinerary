@@ -1,20 +1,84 @@
 spring:
   application:
     name: microitinerary
+
+  # Database Configuration
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/microitinerary}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  # Flyway Migrations
   flyway:
     enabled: true
     baseline-on-migrate: true
 
+  # Redis Configuration
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2000ms
+
+  # Google OAuth2 Configuration
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/api/auth/google/callback"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
 server:
   port: 8080
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:microitinerary_jwt_secret_key_2024_secure_minimum_32_chars}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+# OpenAI Configuration
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: gpt-4
+  max-tokens: 2000
+  temperature: 0.7
+
+# AI Cache Configuration (in hours)
+ai-cache:
+  destination-ttl: 24
+  cost-estimation-ttl: 12
+  seasonal-ttl: 168  # 7 days
+
+# Application Configuration
+app:
+  url: ${APP_URL:http://localhost:5173}
+  api-url: ${API_URL:http://localhost:8080}
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:3001
+
+# Logging
+logging:
+  level:
+    com.microitinerary: DEBUG
+    org.springframework.security: DEBUG

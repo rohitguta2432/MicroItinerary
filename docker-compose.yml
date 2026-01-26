@@ -5,7 +5,7 @@ services:
     image: postgres:16-alpine
     container_name: microitinerary-postgres
     ports:
-      - "5454:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_DB=microitinerary
       - POSTGRES_USER=postgres
@@ -14,6 +14,26 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - microitinerary-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: microitinerary-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microitinerary-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -26,14 +46,23 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microitinerary
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - microitinerary-net
 
 volumes:
   postgres_data:
-
+  redis_data:
 
 networks:
   microitinerary-net:
