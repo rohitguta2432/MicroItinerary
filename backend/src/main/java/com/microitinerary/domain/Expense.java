@@ -1,6 +1,15 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,8 +21,7 @@ import java.util.UUID;
 @Table(name = "expenses")
 public class Expense {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(name = "trip_id", nullable = false)
     private UUID tripId;
@@ -44,8 +52,7 @@ public class Expense {
     private List<ExpenseSplit> splits = new ArrayList<>();
 
     // Transient fields for convenience
-    @Transient
-    private String paidByUserName;
+    @Transient private String paidByUserName;
 
     public Expense() {
         this.id = UUID.randomUUID();
@@ -53,8 +60,13 @@ public class Expense {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Expense(UUID tripId, UUID paidByUserId, ExpenseCategory category,
-            BigDecimal amount, String description, LocalDate expenseDate) {
+    public Expense(
+            UUID tripId,
+            UUID paidByUserId,
+            ExpenseCategory category,
+            BigDecimal amount,
+            String description,
+            LocalDate expenseDate) {
         this();
         this.tripId = tripId;
         this.paidByUserId = paidByUserId;

@@ -1,13 +1,20 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,10 +22,9 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "trips")
 public class Trip {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
-    @Column(name = "annual_plan_id", nullable = false)
+    @Column(name = "annual_plan_id")
     private UUID annualPlanId;
 
     @Column(nullable = false)
@@ -221,16 +227,13 @@ public class Trip {
     // Helper method to get full destination string
     public String getFullDestination() {
         StringBuilder sb = new StringBuilder();
-        if (destinationCity != null)
-            sb.append(destinationCity);
+        if (destinationCity != null) sb.append(destinationCity);
         if (destinationState != null) {
-            if (sb.length() > 0)
-                sb.append(", ");
+            if (sb.length() > 0) sb.append(", ");
             sb.append(destinationState);
         }
         if (destinationCountry != null) {
-            if (sb.length() > 0)
-                sb.append(", ");
+            if (sb.length() > 0) sb.append(", ");
             sb.append(destinationCountry);
         }
         return sb.toString();

@@ -1,12 +1,11 @@
 package com.microitinerary.repository;
 
 import com.microitinerary.domain.AnnualPlan;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AnnualPlanRepository extends JpaRepository<AnnualPlan, UUID> {

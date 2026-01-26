@@ -1,22 +1,22 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * AI Cache entity for storing OpenAI API responses.
- * Used as a fallback when Redis is unavailable.
+ * AI Cache entity for storing OpenAI API responses. Used as a fallback when Redis is unavailable.
  */
 @Entity
 @Table(name = "ai_cache")
 public class AICache {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(name = "cache_key", nullable = false, unique = true, length = 500)
     private String cacheKey;

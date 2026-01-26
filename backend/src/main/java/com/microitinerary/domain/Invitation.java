@@ -1,6 +1,11 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -8,8 +13,7 @@ import java.util.UUID;
 @Table(name = "invitations")
 public class Invitation {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(name = "trip_id", nullable = false)
     private UUID tripId;

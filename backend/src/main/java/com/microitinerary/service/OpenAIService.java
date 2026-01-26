@@ -3,8 +3,23 @@ package com.microitinerary.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microitinerary.domain.AICache;
-import com.microitinerary.dto.AIDtos.*;
+import com.microitinerary.dto.AIDtos.CostBreakdown;
+import com.microitinerary.dto.AIDtos.CostEstimationRequest;
+import com.microitinerary.dto.AIDtos.CostEstimationResponse;
+import com.microitinerary.dto.AIDtos.DestinationSuggestion;
+import com.microitinerary.dto.AIDtos.DestinationSuggestionRequest;
+import com.microitinerary.dto.AIDtos.DestinationSuggestionResponse;
+import com.microitinerary.dto.AIDtos.SeasonalRecommendationRequest;
+import com.microitinerary.dto.AIDtos.SeasonalRecommendationResponse;
 import com.microitinerary.repository.AICacheRepository;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,14 +28,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.*;
-
 /**
- * Service for OpenAI API integration
- * Handles destination suggestions, cost estimation, and seasonal
+ * Service for OpenAI API integration Handles destination suggestions, cost estimation, and seasonal
  * recommendations
  */
 @Service
@@ -61,9 +70,7 @@ public class OpenAIService {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Get destination suggestions based on user preferences
-     */
+    /** Get destination suggestions based on user preferences */
     public DestinationSuggestionResponse suggestDestinations(DestinationSuggestionRequest request) {
         String cacheKey = buildCacheKey("dest", request);
 
@@ -71,8 +78,8 @@ public class OpenAIService {
         String cachedResponse = getFromCache(cacheKey);
         if (cachedResponse != null) {
             try {
-                DestinationSuggestionResponse cached = objectMapper.readValue(
-                        cachedResponse, DestinationSuggestionResponse.class);
+                DestinationSuggestionResponse cached =
+                        objectMapper.readValue(cachedResponse, DestinationSuggestionResponse.class);
                 return new DestinationSuggestionResponse(
                         cached.suggestions(), cached.reasoning(), true);
             } catch (Exception e) {
@@ -95,9 +102,7 @@ public class OpenAIService {
         return response;
     }
 
-    /**
-     * Get cost estimation for a trip
-     */
+    /** Get cost estimation for a trip */
     public CostEstimationResponse estimateCost(CostEstimationRequest request) {
         String cacheKey = buildCacheKey("cost", request);
 
@@ -105,13 +110,20 @@ public class OpenAIService {
         String cachedResponse = getFromCache(cacheKey);
         if (cachedResponse != null) {
             try {
-                CostEstimationResponse cached = objectMapper.readValue(
-                        cachedResponse, CostEstimationResponse.class);
+                CostEstimationResponse cached =
+                        objectMapper.readValue(cachedResponse, CostEstimationResponse.class);
                 return new CostEstimationResponse(
-                        cached.hotelCost(), cached.foodCost(), cached.transportCost(),
-                        cached.activityCost(), cached.miscCost(), cached.totalCost(),
-                        cached.perPersonCost(), cached.currency(), cached.breakdown(),
-                        cached.notes(), true);
+                        cached.hotelCost(),
+                        cached.foodCost(),
+                        cached.transportCost(),
+                        cached.activityCost(),
+                        cached.miscCost(),
+                        cached.totalCost(),
+                        cached.perPersonCost(),
+                        cached.currency(),
+                        cached.breakdown(),
+                        cached.notes(),
+                        true);
             } catch (Exception e) {
                 log.warn("Failed to parse cached response", e);
             }
@@ -132,23 +144,30 @@ public class OpenAIService {
         return response;
     }
 
-    /**
-     * Get seasonal recommendations for a destination
-     */
-    public SeasonalRecommendationResponse getSeasonalRecommendation(SeasonalRecommendationRequest request) {
+    /** Get seasonal recommendations for a destination */
+    public SeasonalRecommendationResponse getSeasonalRecommendation(
+            SeasonalRecommendationRequest request) {
         String cacheKey = buildCacheKey("seasonal", request);
 
         // Check cache
         String cachedResponse = getFromCache(cacheKey);
         if (cachedResponse != null) {
             try {
-                SeasonalRecommendationResponse cached = objectMapper.readValue(
-                        cachedResponse, SeasonalRecommendationResponse.class);
+                SeasonalRecommendationResponse cached =
+                        objectMapper.readValue(
+                                cachedResponse, SeasonalRecommendationResponse.class);
                 return new SeasonalRecommendationResponse(
-                        cached.destination(), cached.month(), cached.weather(),
-                        cached.temperature(), cached.recommendedActivities(),
-                        cached.packingTips(), cached.festivals(), cached.crowdLevel(),
-                        cached.priceLevel(), cached.overallRecommendation(), true);
+                        cached.destination(),
+                        cached.month(),
+                        cached.weather(),
+                        cached.temperature(),
+                        cached.recommendedActivities(),
+                        cached.packingTips(),
+                        cached.festivals(),
+                        cached.crowdLevel(),
+                        cached.priceLevel(),
+                        cached.overallRecommendation(),
+                        true);
             } catch (Exception e) {
                 log.warn("Failed to parse cached response", e);
             }
@@ -179,20 +198,25 @@ public class OpenAIService {
             requestBody.put("temperature", temperature);
 
             List<Map<String, String>> messages = new ArrayList<>();
-            messages.add(Map.of(
-                    "role", "system",
-                    "content", "You are a helpful travel planning assistant. " +
-                            "Always respond with valid JSON. All monetary values should be in Indian Rupees (INR). " +
-                            "Be specific and practical with your suggestions."));
+            messages.add(
+                    Map.of(
+                            "role",
+                            "system",
+                            "content",
+                            "You are a helpful travel planning assistant. Always respond with valid"
+                                + " JSON. All monetary values should be in Indian Rupees (INR). Be"
+                                + " specific and practical with your suggestions."));
             messages.add(Map.of("role", "user", "content", prompt));
             requestBody.put("messages", messages);
 
-            String response = openAIWebClient.post()
-                    .uri("/chat/completions")
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            String response =
+                    openAIWebClient
+                            .post()
+                            .uri("/chat/completions")
+                            .bodyValue(requestBody)
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .block();
 
             // Extract content from response
             JsonNode responseJson = objectMapper.readTree(response);
@@ -214,7 +238,10 @@ public class OpenAIService {
             prompt.append("- Season: ").append(request.season()).append("\n");
         }
         if (request.budgetMin() != null && request.budgetMax() != null) {
-            prompt.append("- Budget: ₹").append(request.budgetMin()).append(" - ₹").append(request.budgetMax())
+            prompt.append("- Budget: ₹")
+                    .append(request.budgetMin())
+                    .append(" - ₹")
+                    .append(request.budgetMax())
                     .append(" INR\n");
         }
         if (request.groupType() != null) {
@@ -227,7 +254,8 @@ public class OpenAIService {
             prompt.append("- Duration: ").append(request.durationDays()).append(" days\n");
         }
         if (request.preferredAmenities() != null && !request.preferredAmenities().isEmpty()) {
-            prompt.append("- Preferred amenities: ").append(String.join(", ", request.preferredAmenities()))
+            prompt.append("- Preferred amenities: ")
+                    .append(String.join(", ", request.preferredAmenities()))
                     .append("\n");
         }
         if (request.preferredRegion() != null) {
@@ -258,14 +286,21 @@ public class OpenAIService {
     private String buildCostPrompt(CostEstimationRequest request) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("Estimate travel costs in Indian Rupees (INR) for:\n");
-        prompt.append("- Destination: ").append(request.destinationCity()).append(", ")
-                .append(request.destinationState()).append(", ").append(request.destinationCountry()).append("\n");
+        prompt.append("- Destination: ")
+                .append(request.destinationCity())
+                .append(", ")
+                .append(request.destinationState())
+                .append(", ")
+                .append(request.destinationCountry())
+                .append("\n");
         prompt.append("- Duration: ").append(request.durationDays()).append(" days\n");
         prompt.append("- Group size: ").append(request.groupSize()).append(" people\n");
         prompt.append("- Group type: ").append(request.groupType()).append("\n");
         prompt.append("- Budget level: ").append(request.budgetLevel()).append("\n");
         if (request.amenities() != null && !request.amenities().isEmpty()) {
-            prompt.append("- Required amenities: ").append(String.join(", ", request.amenities())).append("\n");
+            prompt.append("- Required amenities: ")
+                    .append(String.join(", ", request.amenities()))
+                    .append("\n");
         }
 
         prompt.append("\nProvide costs for the ENTIRE group for ALL days. Respond with JSON:\n");
@@ -276,7 +311,8 @@ public class OpenAIService {
         prompt.append("  \"activityCost\": 10000,\n");
         prompt.append("  \"miscCost\": 5000,\n");
         prompt.append("  \"breakdown\": {\n");
-        prompt.append("    \"hotelDetails\": \"Mid-range hotel, ₹5000/night for ").append(request.durationDays())
+        prompt.append("    \"hotelDetails\": \"Mid-range hotel, ₹5000/night for ")
+                .append(request.durationDays())
                 .append(" nights\",\n");
         prompt.append("    \"foodDetails\": \"3 meals/day at restaurants\",\n");
         prompt.append("    \"transportDetails\": \"Local transport + airport transfers\",\n");
@@ -319,16 +355,20 @@ public class OpenAIService {
             JsonNode suggestionsNode = json.get("suggestions");
             if (suggestionsNode != null && suggestionsNode.isArray()) {
                 for (JsonNode s : suggestionsNode) {
-                    suggestions.add(new DestinationSuggestion(
-                            getTextOrDefault(s, "country", ""),
-                            getTextOrDefault(s, "state", ""),
-                            getTextOrDefault(s, "city", ""),
-                            getTextOrDefault(s, "description", ""),
-                            getTextOrDefault(s, "bestTimeToVisit", ""),
-                            new BigDecimal(s.has("estimatedDailyCost") ? s.get("estimatedDailyCost").asText() : "0"),
-                            toStringList(s.get("highlights")),
-                            toStringList(s.get("availableAmenities")),
-                            s.has("matchScore") ? s.get("matchScore").asDouble() : 0));
+                    suggestions.add(
+                            new DestinationSuggestion(
+                                    getTextOrDefault(s, "country", ""),
+                                    getTextOrDefault(s, "state", ""),
+                                    getTextOrDefault(s, "city", ""),
+                                    getTextOrDefault(s, "description", ""),
+                                    getTextOrDefault(s, "bestTimeToVisit", ""),
+                                    new BigDecimal(
+                                            s.has("estimatedDailyCost")
+                                                    ? s.get("estimatedDailyCost").asText()
+                                                    : "0"),
+                                    toStringList(s.get("highlights")),
+                                    toStringList(s.get("availableAmenities")),
+                                    s.has("matchScore") ? s.get("matchScore").asDouble() : 0));
                 }
             }
 
@@ -336,7 +376,8 @@ public class OpenAIService {
             return new DestinationSuggestionResponse(suggestions, reasoning, false);
         } catch (Exception e) {
             log.error("Failed to parse destination response: {}", aiResponse, e);
-            return new DestinationSuggestionResponse(Collections.emptyList(), "Failed to parse AI response", false);
+            return new DestinationSuggestionResponse(
+                    Collections.emptyList(), "Failed to parse AI response", false);
         }
     }
 
@@ -345,44 +386,71 @@ public class OpenAIService {
             String cleanJson = cleanJsonResponse(aiResponse);
             JsonNode json = objectMapper.readTree(cleanJson);
 
-            BigDecimal hotelCost = new BigDecimal(json.has("hotelCost") ? json.get("hotelCost").asText() : "0");
-            BigDecimal foodCost = new BigDecimal(json.has("foodCost") ? json.get("foodCost").asText() : "0");
-            BigDecimal transportCost = new BigDecimal(
-                    json.has("transportCost") ? json.get("transportCost").asText() : "0");
-            BigDecimal activityCost = new BigDecimal(
-                    json.has("activityCost") ? json.get("activityCost").asText() : "0");
-            BigDecimal miscCost = new BigDecimal(json.has("miscCost") ? json.get("miscCost").asText() : "0");
+            BigDecimal hotelCost =
+                    new BigDecimal(json.has("hotelCost") ? json.get("hotelCost").asText() : "0");
+            BigDecimal foodCost =
+                    new BigDecimal(json.has("foodCost") ? json.get("foodCost").asText() : "0");
+            BigDecimal transportCost =
+                    new BigDecimal(
+                            json.has("transportCost") ? json.get("transportCost").asText() : "0");
+            BigDecimal activityCost =
+                    new BigDecimal(
+                            json.has("activityCost") ? json.get("activityCost").asText() : "0");
+            BigDecimal miscCost =
+                    new BigDecimal(json.has("miscCost") ? json.get("miscCost").asText() : "0");
 
-            BigDecimal totalCost = hotelCost.add(foodCost).add(transportCost).add(activityCost).add(miscCost);
-            BigDecimal perPersonCost = groupSize > 0
-                    ? totalCost.divide(new BigDecimal(groupSize), 2, java.math.RoundingMode.HALF_UP)
-                    : totalCost;
+            BigDecimal totalCost =
+                    hotelCost.add(foodCost).add(transportCost).add(activityCost).add(miscCost);
+            BigDecimal perPersonCost =
+                    groupSize > 0
+                            ? totalCost.divide(
+                                    new BigDecimal(groupSize), 2, java.math.RoundingMode.HALF_UP)
+                            : totalCost;
 
             CostBreakdown breakdown = null;
             if (json.has("breakdown")) {
                 JsonNode b = json.get("breakdown");
-                breakdown = new CostBreakdown(
-                        getTextOrDefault(b, "hotelDetails", ""),
-                        getTextOrDefault(b, "foodDetails", ""),
-                        getTextOrDefault(b, "transportDetails", ""),
-                        getTextOrDefault(b, "activityDetails", ""));
+                breakdown =
+                        new CostBreakdown(
+                                getTextOrDefault(b, "hotelDetails", ""),
+                                getTextOrDefault(b, "foodDetails", ""),
+                                getTextOrDefault(b, "transportDetails", ""),
+                                getTextOrDefault(b, "activityDetails", ""));
             }
 
             String notes = json.has("notes") ? json.get("notes").asText() : "";
 
             return new CostEstimationResponse(
-                    hotelCost, foodCost, transportCost, activityCost, miscCost,
-                    totalCost, perPersonCost, "INR", breakdown, notes, false);
+                    hotelCost,
+                    foodCost,
+                    transportCost,
+                    activityCost,
+                    miscCost,
+                    totalCost,
+                    perPersonCost,
+                    "INR",
+                    breakdown,
+                    notes,
+                    false);
         } catch (Exception e) {
             log.error("Failed to parse cost response: {}", aiResponse, e);
             return new CostEstimationResponse(
-                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                    BigDecimal.ZERO, BigDecimal.ZERO, "INR", null, "Failed to parse AI response", false);
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    "INR",
+                    null,
+                    "Failed to parse AI response",
+                    false);
         }
     }
 
-    private SeasonalRecommendationResponse parseSeasonalResponse(String aiResponse,
-            SeasonalRecommendationRequest request) {
+    private SeasonalRecommendationResponse parseSeasonalResponse(
+            String aiResponse, SeasonalRecommendationRequest request) {
         try {
             String cleanJson = cleanJsonResponse(aiResponse);
             JsonNode json = objectMapper.readTree(cleanJson);
@@ -402,9 +470,17 @@ public class OpenAIService {
         } catch (Exception e) {
             log.error("Failed to parse seasonal response: {}", aiResponse, e);
             return new SeasonalRecommendationResponse(
-                    request.destination(), request.month(), "", "",
-                    Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                    "MEDIUM", "MODERATE", "Failed to parse AI response", false);
+                    request.destination(),
+                    request.month(),
+                    "",
+                    "",
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    "MEDIUM",
+                    "MODERATE",
+                    "Failed to parse AI response",
+                    false);
         }
     }
 
@@ -423,7 +499,8 @@ public class OpenAIService {
 
         // Fallback to database
         try {
-            return aiCacheRepository.findValidByCacheKey(key, LocalDateTime.now())
+            return aiCacheRepository
+                    .findValidByCacheKey(key, LocalDateTime.now())
                     .map(AICache::getResponse)
                     .orElse(null);
         } catch (Exception e) {
@@ -446,9 +523,12 @@ public class OpenAIService {
             // Save to database as fallback
             try {
                 AICache cache = new AICache(key, json, ttlHours);
-                aiCacheRepository.findByCacheKey(key).ifPresent(existing -> {
-                    cache.setId(existing.getId());
-                });
+                aiCacheRepository
+                        .findByCacheKey(key)
+                        .ifPresent(
+                                existing -> {
+                                    cache.setId(existing.getId());
+                                });
                 aiCacheRepository.save(cache);
             } catch (Exception e) {
                 log.warn("Failed to save to database cache", e);
@@ -499,8 +579,10 @@ public class OpenAIService {
     }
 
     private String getMonthName(int month) {
-        String[] months = { "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December" };
+        String[] months = {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        };
         return month >= 1 && month <= 12 ? months[month - 1] : "Unknown";
     }
 }

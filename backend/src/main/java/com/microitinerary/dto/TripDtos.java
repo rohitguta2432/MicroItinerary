@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * DTOs for Trip-related operations
- */
+/** DTOs for Trip-related operations */
 public class TripDtos {
 
     // Request to create a new trip
@@ -22,8 +20,7 @@ public class TripDtos {
             String travelType,
             String groupType,
             List<String> amenities,
-            BigDecimal estimatedCost) {
-    }
+            BigDecimal estimatedCost) {}
 
     // Request to update a trip
     public record UpdateTripRequest(
@@ -36,8 +33,7 @@ public class TripDtos {
             String travelType,
             String groupType,
             List<String> amenities,
-            BigDecimal estimatedCost) {
-    }
+            BigDecimal estimatedCost) {}
 
     // Trip summary response
     public record TripSummaryResponse(
@@ -50,8 +46,7 @@ public class TripDtos {
             String groupType,
             int memberCount,
             BigDecimal estimatedCost,
-            BigDecimal actualCost) {
-    }
+            BigDecimal actualCost) {}
 
     // Trip detail response with members and expenses
     public record TripDetailResponse(
@@ -69,34 +64,18 @@ public class TripDtos {
             BigDecimal estimatedCost,
             BigDecimal actualCost,
             List<TripMemberResponse> members,
-            String aiSuggestion) {
-    }
+            String aiSuggestion) {}
 
     // Trip member info
     public record TripMemberResponse(
-            UUID userId,
-            String name,
-            String email,
-            String pictureUrl,
-            String role) {
-    }
+            UUID userId, String name, String email, String pictureUrl, String role) {}
 
     // Request to invite a member
-    public record InviteMemberRequest(
-            String email) {
-    }
+    public record InviteMemberRequest(String email) {}
 
     // Response for calendar view (12 months)
     public record CalendarViewResponse(
-            int year,
-            BigDecimal totalBudget,
-            BigDecimal plannedCost,
-            List<MonthData> months) {
-    }
+            int year, BigDecimal totalBudget, BigDecimal plannedCost, List<MonthData> months) {}
 
-    public record MonthData(
-            int month,
-            String monthName,
-            List<TripSummaryResponse> trips) {
-    }
+    public record MonthData(int month, String monthName, List<TripSummaryResponse> trips) {}
 }

@@ -4,20 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microitinerary.config.JwtUtils;
 import com.microitinerary.domain.User;
-import com.microitinerary.dto.AuthDtos.*;
+import com.microitinerary.dto.AuthDtos.AuthResponse;
+import com.microitinerary.dto.AuthDtos.UserInfo;
 import com.microitinerary.repository.UserRepository;
+import java.util.Base64;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Base64;
-import java.util.Optional;
-
-/**
- * Service for handling Google OAuth authentication
- */
+/** Service for handling Google OAuth authentication */
 @Service
 public class AuthService {
 
@@ -37,9 +35,7 @@ public class AuthService {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Authenticate user with Google ID token (from frontend Google Sign-In)
-     */
+    /** Authenticate user with Google ID token (from frontend Google Sign-In) */
     public AuthResponse authenticateWithIdToken(String idToken) {
         try {
             // Decode the ID token (it's a JWT)
@@ -65,23 +61,33 @@ public class AuthService {
             String picture = claims.has("picture") ? claims.get("picture").asText() : null;
 
             // Find or create user
-            User user = userRepository.findByGoogleId(googleId)
-                    .orElseGet(() -> {
-                        // Check if user exists by email (might have been invited)
-                        return userRepository.findByEmail(email)
-                                .map(existingUser -> {
-                                    // Link Google account to existing user
-                                    existingUser.setGoogleId(googleId);
-                                    existingUser.setName(name);
-                                    existingUser.setPictureUrl(picture);
-                                    return userRepository.save(existingUser);
-                                })
-                                .orElseGet(() -> {
-                                    // Create new user
-                                    User newUser = new User(email, name, picture, googleId);
-                                    return userRepository.save(newUser);
-                                });
-                    });
+            User user =
+                    userRepository
+                            .findByGoogleId(googleId)
+                            .orElseGet(
+                                    () -> {
+                                        // Check if user exists by email (might have been invited)
+                                        return userRepository
+                                                .findByEmail(email)
+                                                .map(
+                                                        existingUser -> {
+                                                            // Link Google account to existing user
+                                                            existingUser.setGoogleId(googleId);
+                                                            existingUser.setName(name);
+                                                            existingUser.setPictureUrl(picture);
+                                                            return userRepository.save(
+                                                                    existingUser);
+                                                        })
+                                                .orElseGet(
+                                                        () -> {
+                                                            // Create new user
+                                                            User newUser =
+                                                                    new User(
+                                                                            email, name, picture,
+                                                                            googleId);
+                                                            return userRepository.save(newUser);
+                                                        });
+                                    });
 
             // Update user info if changed
             boolean updated = false;
@@ -114,28 +120,27 @@ public class AuthService {
         }
     }
 
-    /**
-     * Exchange authorization code for tokens (server-side flow)
-     */
+    /** Exchange authorization code for tokens (server-side flow) */
     public AuthResponse authenticateWithCode(String code, String redirectUri) {
         try {
             // Exchange code for tokens
-            WebClient webClient = WebClient.builder()
-                    .baseUrl("https://oauth2.googleapis.com")
-                    .build();
+            WebClient webClient =
+                    WebClient.builder().baseUrl("https://oauth2.googleapis.com").build();
 
-            String tokenResponse = webClient.post()
-                    .uri("/token")
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(BodyInserters
-                            .fromFormData("code", code)
-                            .with("client_id", googleClientId)
-                            .with("client_secret", googleClientSecret)
-                            .with("redirect_uri", redirectUri)
-                            .with("grant_type", "authorization_code"))
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            String tokenResponse =
+                    webClient
+                            .post()
+                            .uri("/token")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .body(
+                                    BodyInserters.fromFormData("code", code)
+                                            .with("client_id", googleClientId)
+                                            .with("client_secret", googleClientSecret)
+                                            .with("redirect_uri", redirectUri)
+                                            .with("grant_type", "authorization_code"))
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .block();
 
             JsonNode tokenJson = objectMapper.readTree(tokenResponse);
             String idToken = tokenJson.get("id_token").asText();
@@ -143,13 +148,12 @@ public class AuthService {
             // Use the ID token to authenticate
             return authenticateWithIdToken(idToken);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to exchange authorization code: " + e.getMessage(), e);
+            throw new RuntimeException(
+                    "Failed to exchange authorization code: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Get user by ID
-     */
+    /** Get user by ID */
     public Optional<User> getUserById(String userId) {
         try {
             return userRepository.findById(java.util.UUID.fromString(userId));
@@ -158,9 +162,7 @@ public class AuthService {
         }
     }
 
-    /**
-     * Get current authenticated user from token
-     */
+    /** Get current authenticated user from token */
     public Optional<User> getCurrentUser(String token) {
         if (token == null || !jwtUtils.validateToken(token)) {
             return Optional.empty();
@@ -169,16 +171,21 @@ public class AuthService {
     }
 
     /**
-     * Development-only login: creates or finds a user by email and generates a JWT.
-     * WARNING: This should only be used for local development!
+     * Development-only login: creates or finds a user by email and generates a JWT. WARNING: This
+     * should only be used for local development!
      */
     public AuthResponse devLogin(String email, String name) {
         // Find or create user by email
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = new User(email, name != null ? name : email, null, null);
-                    return userRepository.save(newUser);
-                });
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseGet(
+                                () -> {
+                                    User newUser =
+                                            new User(
+                                                    email, name != null ? name : email, null, null);
+                                    return userRepository.save(newUser);
+                                });
 
         // Generate JWT
         String accessToken = jwtUtils.generateToken(user.getId(), user.getEmail());

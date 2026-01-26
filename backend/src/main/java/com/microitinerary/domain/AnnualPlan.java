@@ -1,6 +1,13 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,13 +15,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "annual_plans", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_id", "year" })
-})
+@Table(
+        name = "annual_plans",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "year"})})
 public class AnnualPlan {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;

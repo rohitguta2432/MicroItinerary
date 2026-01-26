@@ -1,17 +1,23 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "trip_members", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "trip_id", "user_id" })
-})
+@Table(
+        name = "trip_members",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"trip_id", "user_id"})})
 public class TripMember {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(name = "trip_id", nullable = false)
     private UUID tripId;
@@ -27,14 +33,11 @@ public class TripMember {
     private LocalDateTime joinedAt;
 
     // Transient fields for convenience (populated from joins)
-    @Transient
-    private String userName;
+    @Transient private String userName;
 
-    @Transient
-    private String userEmail;
+    @Transient private String userEmail;
 
-    @Transient
-    private String userPictureUrl;
+    @Transient private String userPictureUrl;
 
     public TripMember() {
         this.id = UUID.randomUUID();

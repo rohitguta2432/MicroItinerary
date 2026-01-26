@@ -5,9 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * DTOs for Expense-related operations
- */
+/** DTOs for Expense-related operations */
 public class ExpenseDtos {
 
     // Request to create an expense
@@ -19,14 +17,10 @@ public class ExpenseDtos {
             LocalDate expenseDate,
             List<UUID> splitAmongUserIds, // If null, split among all members
             List<CustomSplit> customSplits // For custom split amounts
-    ) {
-    }
+            ) {}
 
     // Custom split specification
-    public record CustomSplit(
-            UUID userId,
-            BigDecimal amount) {
-    }
+    public record CustomSplit(UUID userId, BigDecimal amount) {}
 
     // Expense response
     public record ExpenseResponse(
@@ -38,17 +32,11 @@ public class ExpenseDtos {
             BigDecimal amount,
             String description,
             LocalDate expenseDate,
-            List<ExpenseSplitResponse> splits) {
-    }
+            List<ExpenseSplitResponse> splits) {}
 
     // Expense split response
     public record ExpenseSplitResponse(
-            UUID id,
-            UUID userId,
-            String userName,
-            BigDecimal amount,
-            boolean isSettled) {
-    }
+            UUID id, UUID userId, String userName, BigDecimal amount, boolean isSettled) {}
 
     // Summary of expenses for a trip
     public record TripExpenseSummaryResponse(
@@ -56,15 +44,10 @@ public class ExpenseDtos {
             BigDecimal totalExpenses,
             List<CategoryBreakdown> byCategory,
             List<UserBalance> balances,
-            List<Settlement> suggestedSettlements) {
-    }
+            List<Settlement> suggestedSettlements) {}
 
     // Breakdown by category
-    public record CategoryBreakdown(
-            String category,
-            BigDecimal amount,
-            double percentage) {
-    }
+    public record CategoryBreakdown(String category, BigDecimal amount, double percentage) {}
 
     // User balance (who owes/is owed)
     public record UserBalance(
@@ -73,8 +56,7 @@ public class ExpenseDtos {
             BigDecimal totalPaid,
             BigDecimal totalOwed,
             BigDecimal netBalance // Positive = is owed money, Negative = owes money
-    ) {
-    }
+            ) {}
 
     // Suggested settlement transaction
     public record Settlement(
@@ -82,16 +64,11 @@ public class ExpenseDtos {
             String fromUserName,
             UUID toUserId,
             String toUserName,
-            BigDecimal amount) {
-    }
+            BigDecimal amount) {}
 
     // Request to settle a split
-    public record SettleSplitRequest(
-            UUID splitId) {
-    }
+    public record SettleSplitRequest(UUID splitId) {}
 
     // Batch settle request
-    public record BatchSettleRequest(
-            List<UUID> splitIds) {
-    }
+    public record BatchSettleRequest(List<UUID> splitIds) {}
 }

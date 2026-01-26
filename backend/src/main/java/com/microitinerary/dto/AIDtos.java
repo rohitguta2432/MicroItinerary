@@ -3,9 +3,7 @@ package com.microitinerary.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * DTOs for AI-related operations
- */
+/** DTOs for AI-related operations */
 public class AIDtos {
 
     // Request for destination suggestions
@@ -19,15 +17,11 @@ public class AIDtos {
             String travelType, // LEISURE, ADVENTURE, RELIGIOUS, BUSINESS
             Integer durationDays,
             String preferredRegion // Optional: NORTH_INDIA, SOUTH_INDIA, INTERNATIONAL, etc.
-    ) {
-    }
+            ) {}
 
     // Destination suggestion response
     public record DestinationSuggestionResponse(
-            List<DestinationSuggestion> suggestions,
-            String reasoning,
-            boolean fromCache) {
-    }
+            List<DestinationSuggestion> suggestions, String reasoning, boolean fromCache) {}
 
     // Single destination suggestion
     public record DestinationSuggestion(
@@ -40,8 +34,7 @@ public class AIDtos {
             List<String> highlights,
             List<String> availableAmenities,
             double matchScore // 0-100 how well it matches the request
-    ) {
-    }
+            ) {}
 
     // Request for cost estimation
     public record CostEstimationRequest(
@@ -52,8 +45,7 @@ public class AIDtos {
             Integer groupSize,
             String groupType, // SOLO, FRIENDS, FAMILY
             String budgetLevel, // BUDGET, MID_RANGE, LUXURY
-            List<String> amenities) {
-    }
+            List<String> amenities) {}
 
     // Cost estimation response
     public record CostEstimationResponse(
@@ -67,22 +59,17 @@ public class AIDtos {
             String currency,
             CostBreakdown breakdown,
             String notes,
-            boolean fromCache) {
-    }
+            boolean fromCache) {}
 
     // Detailed cost breakdown
     public record CostBreakdown(
             String hotelDetails,
             String foodDetails,
             String transportDetails,
-            String activityDetails) {
-    }
+            String activityDetails) {}
 
     // Seasonal recommendation request
-    public record SeasonalRecommendationRequest(
-            String destination,
-            Integer month) {
-    }
+    public record SeasonalRecommendationRequest(String destination, Integer month) {}
 
     // Seasonal recommendation response
     public record SeasonalRecommendationResponse(
@@ -96,6 +83,5 @@ public class AIDtos {
             String crowdLevel, // LOW, MEDIUM, HIGH
             String priceLevel, // BUDGET, MODERATE, PEAK
             String overallRecommendation,
-            boolean fromCache) {
-    }
+            boolean fromCache) {}
 }

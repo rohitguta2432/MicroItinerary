@@ -7,9 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
-/**
- * WebClient Configuration for external API calls (OpenAI, Country APIs)
- */
+/** WebClient Configuration for external API calls (OpenAI, Country APIs) */
 @Configuration
 public class WebClientConfig {
 

@@ -1,18 +1,22 @@
 package com.microitinerary.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "expense_splits", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "expense_id", "user_id" })
-})
+@Table(
+        name = "expense_splits",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"expense_id", "user_id"})})
 public class ExpenseSplit {
 
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Column(name = "expense_id", nullable = false)
     private UUID expenseId;
@@ -33,8 +37,7 @@ public class ExpenseSplit {
     private LocalDateTime createdAt;
 
     // Transient fields for convenience
-    @Transient
-    private String userName;
+    @Transient private String userName;
 
     public ExpenseSplit() {
         this.id = UUID.randomUUID();

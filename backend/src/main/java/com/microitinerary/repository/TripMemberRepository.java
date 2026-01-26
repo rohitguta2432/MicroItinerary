@@ -2,14 +2,13 @@ package com.microitinerary.repository;
 
 import com.microitinerary.domain.MemberRole;
 import com.microitinerary.domain.TripMember;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public interface TripMemberRepository extends JpaRepository<TripMember, UUID> {
@@ -29,7 +28,8 @@ public interface TripMemberRepository extends JpaRepository<TripMember, UUID> {
     long countByTripId(UUID tripId);
 
     // Find members with user details
-    @Query("SELECT tm, u FROM TripMember tm JOIN User u ON tm.userId = u.id " +
-            "WHERE tm.tripId = :tripId")
+    @Query(
+            "SELECT tm, u FROM TripMember tm JOIN User u ON tm.userId = u.id "
+                    + "WHERE tm.tripId = :tripId")
     List<Object[]> findMembersWithUserDetails(@Param("tripId") UUID tripId);
 }

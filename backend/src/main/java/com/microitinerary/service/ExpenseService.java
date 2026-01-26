@@ -1,19 +1,35 @@
 package com.microitinerary.service;
 
-import com.microitinerary.domain.*;
-import com.microitinerary.dto.ExpenseDtos.*;
-import com.microitinerary.repository.*;
+import com.microitinerary.domain.Expense;
+import com.microitinerary.domain.ExpenseCategory;
+import com.microitinerary.domain.ExpenseSplit;
+import com.microitinerary.domain.TripMember;
+import com.microitinerary.domain.User;
+import com.microitinerary.dto.ExpenseDtos.CategoryBreakdown;
+import com.microitinerary.dto.ExpenseDtos.CreateExpenseRequest;
+import com.microitinerary.dto.ExpenseDtos.CustomSplit;
+import com.microitinerary.dto.ExpenseDtos.ExpenseResponse;
+import com.microitinerary.dto.ExpenseDtos.ExpenseSplitResponse;
+import com.microitinerary.dto.ExpenseDtos.Settlement;
+import com.microitinerary.dto.ExpenseDtos.TripExpenseSummaryResponse;
+import com.microitinerary.dto.ExpenseDtos.UserBalance;
+import com.microitinerary.repository.ExpenseRepository;
+import com.microitinerary.repository.ExpenseSplitRepository;
+import com.microitinerary.repository.TripMemberRepository;
+import com.microitinerary.repository.UserRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
-import java.util.stream.Collectors;
-
-/**
- * Service for managing Expenses with Splitwise-style splitting
- */
+/** Service for managing Expenses with Splitwise-style splitting */
 @Service
 public class ExpenseService {
 
@@ -33,9 +49,7 @@ public class ExpenseService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Get all expenses for a trip
-     */
+    /** Get all expenses for a trip */
     public List<ExpenseResponse> getTripExpenses(UUID tripId, UUID userId) {
         if (!isMember(tripId, userId)) {
             return Collections.emptyList();
@@ -46,9 +60,7 @@ public class ExpenseService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Add a new expense
-     */
+    /** Add a new expense */
     @Transactional
     public ExpenseResponse addExpense(UUID tripId, UUID userId, CreateExpenseRequest request) {
         if (!isMember(tripId, userId)) {
@@ -56,34 +68,39 @@ public class ExpenseService {
         }
 
         // Create expense
-        Expense expense = new Expense(
-                tripId,
-                request.paidByUserId(),
-                ExpenseCategory.valueOf(request.category()),
-                request.amount(),
-                request.description(),
-                request.expenseDate());
+        Expense expense =
+                new Expense(
+                        tripId,
+                        request.paidByUserId(),
+                        ExpenseCategory.valueOf(request.category()),
+                        request.amount(),
+                        request.description(),
+                        request.expenseDate());
         expense = expenseRepository.save(expense);
 
         // Create splits
         List<UUID> splitAmong = request.splitAmongUserIds();
         if (splitAmong == null || splitAmong.isEmpty()) {
             // Split among all trip members by default
-            splitAmong = tripMemberRepository.findByTripId(tripId).stream()
-                    .map(TripMember::getUserId)
-                    .collect(Collectors.toList());
+            splitAmong =
+                    tripMemberRepository.findByTripId(tripId).stream()
+                            .map(TripMember::getUserId)
+                            .collect(Collectors.toList());
         }
 
         if (request.customSplits() != null && !request.customSplits().isEmpty()) {
             // Custom split amounts
             for (CustomSplit customSplit : request.customSplits()) {
-                ExpenseSplit split = new ExpenseSplit(expense.getId(), customSplit.userId(), customSplit.amount());
+                ExpenseSplit split =
+                        new ExpenseSplit(
+                                expense.getId(), customSplit.userId(), customSplit.amount());
                 expenseSplitRepository.save(split);
             }
         } else {
             // Equal split
-            BigDecimal splitAmount = request.amount().divide(
-                    new BigDecimal(splitAmong.size()), 2, RoundingMode.HALF_UP);
+            BigDecimal splitAmount =
+                    request.amount()
+                            .divide(new BigDecimal(splitAmong.size()), 2, RoundingMode.HALF_UP);
 
             for (UUID memberId : splitAmong) {
                 ExpenseSplit split = new ExpenseSplit(expense.getId(), memberId, splitAmount);
@@ -94,9 +111,7 @@ public class ExpenseService {
         return toExpenseResponse(expense);
     }
 
-    /**
-     * Get expense summary for a trip (who owes whom)
-     */
+    /** Get expense summary for a trip (who owes whom) */
     public TripExpenseSummaryResponse getTripExpenseSummary(UUID tripId, UUID userId) {
         if (!isMember(tripId, userId)) {
             return null;
@@ -104,22 +119,30 @@ public class ExpenseService {
 
         // Get all expenses
         List<Expense> expenses = expenseRepository.findByTripId(tripId);
-        BigDecimal totalExpenses = expenses.stream()
-                .map(Expense::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpenses =
+                expenses.stream().map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Category breakdown
         List<Object[]> categoryData = expenseRepository.sumByTripIdGroupByCategory(tripId);
-        List<CategoryBreakdown> byCategory = categoryData.stream()
-                .map(row -> {
-                    ExpenseCategory category = (ExpenseCategory) row[0];
-                    BigDecimal amount = (BigDecimal) row[1];
-                    double percentage = totalExpenses.compareTo(BigDecimal.ZERO) > 0
-                            ? amount.divide(totalExpenses, 4, RoundingMode.HALF_UP).doubleValue() * 100
-                            : 0;
-                    return new CategoryBreakdown(category.name(), amount, percentage);
-                })
-                .collect(Collectors.toList());
+        List<CategoryBreakdown> byCategory =
+                categoryData.stream()
+                        .map(
+                                row -> {
+                                    ExpenseCategory category = (ExpenseCategory) row[0];
+                                    BigDecimal amount = (BigDecimal) row[1];
+                                    double percentage =
+                                            totalExpenses.compareTo(BigDecimal.ZERO) > 0
+                                                    ? amount.divide(
+                                                                            totalExpenses,
+                                                                            4,
+                                                                            RoundingMode.HALF_UP)
+                                                                    .doubleValue()
+                                                            * 100
+                                                    : 0;
+                                    return new CategoryBreakdown(
+                                            category.name(), amount, percentage);
+                                })
+                        .collect(Collectors.toList());
 
         // Calculate balances per user
         List<TripMember> members = tripMemberRepository.findByTripId(tripId);
@@ -128,66 +151,53 @@ public class ExpenseService {
         for (TripMember member : members) {
             UUID memberId = member.getUserId();
             User user = userRepository.findById(memberId).orElse(null);
-            if (user == null)
-                continue;
+            if (user == null) continue;
 
             // Total paid by this user
             BigDecimal totalPaid = expenseRepository.sumByTripIdAndPaidByUserId(tripId, memberId);
-            if (totalPaid == null)
-                totalPaid = BigDecimal.ZERO;
+            if (totalPaid == null) totalPaid = BigDecimal.ZERO;
 
             // Total owed by this user (sum of their unsettled splits)
-            BigDecimal totalOwed = expenseSplitRepository.sumUnsettledByTripIdAndUserId(tripId, memberId);
-            if (totalOwed == null)
-                totalOwed = BigDecimal.ZERO;
+            BigDecimal totalOwed =
+                    expenseSplitRepository.sumUnsettledByTripIdAndUserId(tripId, memberId);
+            if (totalOwed == null) totalOwed = BigDecimal.ZERO;
 
             // Net balance (positive = is owed money, negative = owes money)
             BigDecimal netBalance = totalPaid.subtract(totalOwed);
 
-            balances.add(new UserBalance(
-                    memberId,
-                    user.getName(),
-                    totalPaid,
-                    totalOwed,
-                    netBalance));
+            balances.add(
+                    new UserBalance(memberId, user.getName(), totalPaid, totalOwed, netBalance));
         }
 
         // Calculate suggested settlements
         List<Settlement> settlements = calculateSettlements(balances);
 
         return new TripExpenseSummaryResponse(
-                tripId,
-                totalExpenses,
-                byCategory,
-                balances,
-                settlements);
+                tripId, totalExpenses, byCategory, balances, settlements);
     }
 
-    /**
-     * Settle a split
-     */
+    /** Settle a split */
     @Transactional
     public boolean settleSplit(UUID splitId, UUID userId) {
-        return expenseSplitRepository.findById(splitId)
-                .map(split -> {
-                    // Verify user has access (either payer or owes)
-                    Expense expense = expenseRepository.findById(split.getExpenseId()).orElse(null);
-                    if (expense == null)
-                        return false;
+        return expenseSplitRepository
+                .findById(splitId)
+                .map(
+                        split -> {
+                            // Verify user has access (either payer or owes)
+                            Expense expense =
+                                    expenseRepository.findById(split.getExpenseId()).orElse(null);
+                            if (expense == null) return false;
 
-                    if (!isMember(expense.getTripId(), userId))
-                        return false;
+                            if (!isMember(expense.getTripId(), userId)) return false;
 
-                    split.settle();
-                    expenseSplitRepository.save(split);
-                    return true;
-                })
+                            split.settle();
+                            expenseSplitRepository.save(split);
+                            return true;
+                        })
                 .orElse(false);
     }
 
-    /**
-     * Batch settle multiple splits
-     */
+    /** Batch settle multiple splits */
     @Transactional
     public int batchSettle(List<UUID> splitIds, UUID userId) {
         int settledCount = 0;
@@ -208,17 +218,20 @@ public class ExpenseService {
     private ExpenseResponse toExpenseResponse(Expense expense) {
         User payer = userRepository.findById(expense.getPaidByUserId()).orElse(null);
 
-        List<ExpenseSplitResponse> splits = expenseSplitRepository.findByExpenseId(expense.getId()).stream()
-                .map(split -> {
-                    User user = userRepository.findById(split.getUserId()).orElse(null);
-                    return new ExpenseSplitResponse(
-                            split.getId(),
-                            split.getUserId(),
-                            user != null ? user.getName() : "Unknown",
-                            split.getAmount(),
-                            split.getIsSettled());
-                })
-                .collect(Collectors.toList());
+        List<ExpenseSplitResponse> splits =
+                expenseSplitRepository.findByExpenseId(expense.getId()).stream()
+                        .map(
+                                split -> {
+                                    User user =
+                                            userRepository.findById(split.getUserId()).orElse(null);
+                                    return new ExpenseSplitResponse(
+                                            split.getId(),
+                                            split.getUserId(),
+                                            user != null ? user.getName() : "Unknown",
+                                            split.getAmount(),
+                                            split.getIsSettled());
+                                })
+                        .collect(Collectors.toList());
 
         return new ExpenseResponse(
                 expense.getId(),
@@ -233,8 +246,8 @@ public class ExpenseService {
     }
 
     /**
-     * Calculate optimal settlements using a greedy algorithm
-     * This minimizes the number of transactions needed
+     * Calculate optimal settlements using a greedy algorithm This minimizes the number of
+     * transactions needed
      */
     private List<Settlement> calculateSettlements(List<UserBalance> balances) {
         List<Settlement> settlements = new ArrayList<>();
@@ -271,9 +284,10 @@ public class ExpenseService {
             }
 
             // If no significant balances remain, we're done
-            if (debtor == null || creditor == null ||
-                    maxDebt.abs().compareTo(new BigDecimal("0.01")) < 0 ||
-                    maxCredit.compareTo(new BigDecimal("0.01")) < 0) {
+            if (debtor == null
+                    || creditor == null
+                    || maxDebt.abs().compareTo(new BigDecimal("0.01")) < 0
+                    || maxCredit.compareTo(new BigDecimal("0.01")) < 0) {
                 break;
             }
 
@@ -281,12 +295,13 @@ public class ExpenseService {
             BigDecimal settlementAmount = maxDebt.abs().min(maxCredit);
 
             // Create settlement
-            settlements.add(new Settlement(
-                    debtor,
-                    userNames.get(debtor),
-                    creditor,
-                    userNames.get(creditor),
-                    settlementAmount));
+            settlements.add(
+                    new Settlement(
+                            debtor,
+                            userNames.get(debtor),
+                            creditor,
+                            userNames.get(creditor),
+                            settlementAmount));
 
             // Update balances
             netBalances.put(debtor, netBalances.get(debtor).add(settlementAmount));
