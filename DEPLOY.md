@@ -58,9 +58,9 @@ Netlify needs to know where your backend is.
 5.  **Publish directory**: `dist`
 6.  **Environment Variables**:
     *   Click "Show advanced" -> "New Variable".
-    *   Key: `VITE_API_URL`
-    *   Value: Your **Render Backend URL** (e.g., `https://microitinerary-api.onrender.com`).
-    *   *Note: Do NOT include a trailing slash.*
+    *   Key: `VITE_API_BASE_URL`
+    *   Value: Your **Render Backend URL** suffixed with `/api` (e.g., `https://microitinerary-api.onrender.com/api`).
+    *   *Note: Do NOT include a trailing slash after `/api`.*
 7.  Click **Deploy site**.
 
 ### 3. Final Connection
