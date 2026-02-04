@@ -73,7 +73,7 @@ app:
   url: ${APP_URL:http://localhost:5173}
   api-url: ${API_URL:http://localhost:8080}
   cors:
-    allowed-origins: http://localhost:5173,http://localhost:3001,https://*.ngrok-free.app
+    allowed-origins: http://localhost:5173,http://localhost:5174,http://localhost:3001,https://*.ngrok-free.app
 
 # Logging
 logging:

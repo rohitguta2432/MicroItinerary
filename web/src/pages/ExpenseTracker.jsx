@@ -136,7 +136,7 @@ const ExpenseTracker = () => {
                                 >
                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                         <div style={{
-                                            background: 'rgba(255,255,255,0.05)',
+                                            background: 'var(--card-overlay)',
                                             width: '40px',
                                             height: '40px',
                                             borderRadius: '0.75rem',
@@ -172,7 +172,7 @@ const ExpenseTracker = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
                         {/* Net Balances */}
-                        <div className="glass-card" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.4))' }}>
+                        <div className="glass-card" style={{ padding: '2rem' }}>
                             <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Scale size={20} className="text-secondary" />
                                 Group Balances
@@ -196,14 +196,14 @@ const ExpenseTracker = () => {
                         </div>
 
                         {/* Suggested Settlements */}
-                        <div className="glass-card" style={{ padding: '2rem', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                        <div className="glass-card" style={{ padding: '2rem' }}>
                             <h2 style={{ fontSize: '1rem', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
                                 Suggested Settlements
                             </h2>
                             {summary?.suggestedSettlements?.length > 0 ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {summary.suggestedSettlements.map((s, i) => (
-                                        <div key={i} style={{ fontSize: '0.875rem', background: 'rgba(16, 185, 129, 0.05)', padding: '1rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div key={i} style={{ fontSize: '0.875rem', background: 'var(--card-overlay)', padding: '1rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                 <span style={{ fontWeight: '600' }}>{s.fromUserName}</span>
                                                 <ArrowRight size={14} className="text-muted" />

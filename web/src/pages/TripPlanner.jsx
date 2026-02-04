@@ -227,7 +227,6 @@ const TripPlanner = () => {
             <style>{`
         .glass-card:hover {
           border-color: var(--primary) !important;
-          background: rgba(30, 41, 59, 0.6) !important;
         }
       `}</style>
         </div>

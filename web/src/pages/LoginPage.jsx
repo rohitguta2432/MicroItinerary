@@ -41,7 +41,7 @@ const LoginPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'radial-gradient(circle at top right, #1e293b, #020617)',
+            background: 'var(--login-bg)',
             padding: '2rem'
         }}>
             <motion.div
@@ -119,7 +119,7 @@ const LoginPage = () => {
                         disabled={guestLoading}
                         style={{
                             background: 'transparent',
-                            border: '1px solid rgba(255,255,255,0.2)',
+                            border: '1px solid var(--glass-border)',
                             color: 'var(--text-primary)',
                             padding: '0.5rem 1.5rem',
                             borderRadius: '9999px',

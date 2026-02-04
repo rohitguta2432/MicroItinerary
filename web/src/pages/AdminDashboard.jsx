@@ -123,7 +123,7 @@ const AdminDashboard = () => {
                             </thead>
                             <tbody>
                                 {users.map(u => (
-                                    <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <tr key={u.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                                         <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                             <img src={u.pictureUrl || `https://ui-avatars.com/api/?name=${u.name}`} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
                                             <div>
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
                                 display: 'flex',
                                 gap: '1rem',
                                 padding: '1rem',
-                                background: 'rgba(255,255,255,0.03)',
+                                background: 'var(--card-overlay)',
                                 borderRadius: '0.5rem',
                                 borderLeft: log.action === 'ERROR' ? '3px solid var(--accent)' : '3px solid var(--primary)'
                             }}>
