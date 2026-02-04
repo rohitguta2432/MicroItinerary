@@ -129,10 +129,10 @@ const MonthCard = ({ month, index }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {month.trips?.map(trip => (
                             <div key={trip.id} className="trip-item" style={{
-                                background: 'rgba(255,255,255,0.03)',
+                                background: 'var(--card-overlay)',
                                 padding: '1rem',
                                 borderRadius: '0.75rem',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                border: '1px solid var(--glass-border)',
                                 cursor: 'pointer',
                                 transition: 'var(--transition)'
                             }}>
@@ -188,7 +188,7 @@ const MonthCard = ({ month, index }) => {
 
             <style>{`
         .trip-item:hover {
-          background: rgba(255,255,255,0.08) !important;
+          background: var(--card-overlay-hover) !important;
           border-color: var(--primary) !important;
           transform: translateX(4px);
         }

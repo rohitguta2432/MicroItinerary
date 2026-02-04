@@ -116,7 +116,7 @@ const Navbar = () => {
             gap: 0.5rem;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
-            background: rgba(255,255,255,0.05);
+            background: var(--card-overlay);
             border: 1px solid var(--border);
         }
         .user-profile img {
